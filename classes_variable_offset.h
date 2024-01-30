@@ -5,7 +5,6 @@
 #include <sstream>
 #include <bitset>
 #include <algorithm>
-#include <tuple>
 using namespace std;
 
 class Record {
@@ -54,59 +53,54 @@ private:
         static const int BLOCK_SIZE = 4096; // Define the size of each page (4KB)
         Page *nextPage; // Pointer to the next page in the list
         int pageNumber; // Identifier for the page
-        vector<char> data; // Vector to store the data in the page
-        vector<int> offsetArray; // Vector to store the offsets of the records in the page
-        unsigned long long offsetArraySize;
-        
+        vector<int> static offsetArray; // Tracks the current writing position within the page
+        std::vector<char> data; // Storage for page data
+
+        // Calculate the amount of 
+        vector<int> static initializeOffsetArray() {
+            int minBioLen = INT_MAX;
+            int minNameLen = INT_MAX;
+
+            ifstream file("Employee.csv");
+            
+            // Loop through records
+            string line;
+            if (file.is_open()) {
+                while (getline(file, line)) {
+                    // Split line into fields
+                    vector<string> fields;
+                    stringstream ss(line);
+                    string field;
+                    while (getline(ss, field, ',')) {
+                        fields.push_back(field);
+                    }
+                    if (fields.size() != 4) {
+                        // Throw an error
+                    }
+
+                    if (sizeof(fields[1])/sizeof(char) < minNameLen) {
+                        minNameLen = sizeof(fields[1])/sizeof(char);
+                    }
+                    if (sizeof(fields[2])/sizeof(char) < minBioLen) {
+                        minBioLen = sizeof(fields[2])/sizeof(char);
+                    }
+                }
+            }
+
+            // Minimize size of records: ID, name, bio, manager_id and then an 8 byte offset for each
+            int minRecordSize = 3 * 8 + minNameLen + minBioLen;
+            int maxRecords = (BLOCK_SIZE) / minRecordSize;
+            return vector<int>(maxRecords, 0);
+        }
 
         public:
             // Constructor for the Page class
-            Page(int pageNum) : pageNumber(pageNum), nextPage(nullptr) {}
-
-            // Calc necessary offset array size,
-            // return vector of that size
-            vector<int> static initializeOffsetArray() {
-                int minBioLen = INT_MAX;
-                int minNameLen = INT_MAX;
-
-                ifstream file("Employee.csv");
-                
-                // Loop through records
-                string line;
-                if (file.is_open()) {
-                    while (getline(file, line)) {
-                        // Split line into fields
-                        vector<string> fields;
-                        stringstream ss(line);
-                        string field;
-                        while (getline(ss, field, ',')) {
-                            fields.push_back(field);
-                        }
-                        if (fields.size() != 4) {
-                            // Throw an error
-                        }
-
-                        if (sizeof(fields[1])/sizeof(char) < minNameLen) {
-                            minNameLen = sizeof(fields[1])/sizeof(char);
-                        }
-                        if (sizeof(fields[2])/sizeof(char) < minBioLen) {
-                            minBioLen = sizeof(fields[2])/sizeof(char);
-                        }
-                    }
-                }
-
-                // Minimize size of records: ID, name, bio, manager_id and then an 8 byte offset for each
-                int minRecordSize = 3 * 8 + minNameLen + minBioLen;
-                int maxRecords = (BLOCK_SIZE) / minRecordSize;
-                return make_tuple(std::vector<int>(maxRecords, 0), static_cast<unsigned long long>(maxRecords) * sizeof(int));
-
-            };
-            
+            Page(int pageNum) : pageNumber(pageNum), nextPage(nullptr), offset(0), data(BLOCK_SIZE) {}
 
             // Method to add a record to this page
             bool addRecord(const std::string& record) {
                 // Check if there is enough space left in the page
-                if (record.size() + sizeof(offsetArray) > BLOCK_SIZE) {
+                if (record.size() + offset > BLOCK_SIZE) {
                     return false; // Not enough space, record not added
                 }
                 // Copy the record data into the page's data vector
@@ -148,11 +142,18 @@ private:
         Page *head;
         static const int maxPages = 3; 
 
+        // Function used to determine if row being examinied is among those already copied to EmployeeRelation
+        // Use in following maxRecords function
+        bool contains(const std::vector<int>& vec, int value) {
+            return std::find(vec.begin(), vec.end(), value) != vec.end();
+            }
+
+        
+
         public:
         // Constructor for the PageList class
         PageList() : head(nullptr) {
-            head->offsetArray, head->offsetArraySize = initializeOffsetArray();
-            
+            offsetArray = initializeOffsetArray();
         }
 
         // Method to initialize the pages and link them together
@@ -169,31 +170,57 @@ private:
             }
             return head; // Return the head of the list
         }
+
     };
+        
+        
+        
+        
+    // calculate offsets of fields
+            //offset = calcOffset();
+        // append offset for beginning and end of record to offset vector
+        // append record contents/fields. Ensure end of record matches with project end of record offset; same with beginning of record
+          
+            // for each record, insert record into the EmployeeRelation file according to structure:
+                // store record contents as strings separated by commas and row terminated by newline
+    void insertRecord(Page * page, Record record) {
 
+        /*
+        Calculate offsets/file size from argument record. 
+        Store offset in array at beginning of page in use
+        Then append record
+        Offsets must point to beginning of each record, as well as end of last record
+        If record is last record, add to page and write all page contents to file. Conclude.
+        */
 
-    // Insert stringified record into page at offset position
-    void insertRecord(Record record) {
-
-       int recordSize = record.toString().size();
-       string recordString = record.toString();
+       int recordSize = sizeof(record);
 
         // Error check that record size is less than block size
-        if (recordSize >= BLOCK_SIZE) {
+        if (sizeof(record) >= BLOCK_SIZE) {
             cerr << "Record size exceeds block size.\n";
             exit(1);
-        } else {
-        this->offset += recordSize;
-        
         }
         
+        // Calculate offset
+        int offset = page->offsetVector[page->offsetVector.size() - 1] + recordSize;
 
         // Take neccessary steps if capacity is reached (you've utilized all the blocks in main memory)
-    };
+    }
+        
 
-    };
+     
+        /*
+        Storage:
+        For each new record:
+            Check that there's sufficient space including offset
+            If so, store offset and add record to page
+            If page is full or next record is too large to fit, begin new page
+            If page is third page and is full or next record is too large to fit, write to file. Empty pages.
+        */
 
-    
+
+       
+    };
 };
 
 

@@ -5,7 +5,6 @@
 #include <sstream>
 #include <bitset>
 #include <algorithm>
-#include <tuple>
 using namespace std;
 
 class Record {
@@ -55,58 +54,18 @@ private:
         Page *nextPage; // Pointer to the next page in the list
         int pageNumber; // Identifier for the page
         vector<char> data; // Vector to store the data in the page
-        vector<int> offsetArray; // Vector to store the offsets of the records in the page
-        unsigned long long offsetArraySize;
         
 
         public:
             // Constructor for the Page class
             Page(int pageNum) : pageNumber(pageNum), nextPage(nullptr) {}
 
-            // Calc necessary offset array size,
-            // return vector of that size
-            vector<int> static initializeOffsetArray() {
-                int minBioLen = INT_MAX;
-                int minNameLen = INT_MAX;
-
-                ifstream file("Employee.csv");
-                
-                // Loop through records
-                string line;
-                if (file.is_open()) {
-                    while (getline(file, line)) {
-                        // Split line into fields
-                        vector<string> fields;
-                        stringstream ss(line);
-                        string field;
-                        while (getline(ss, field, ',')) {
-                            fields.push_back(field);
-                        }
-                        if (fields.size() != 4) {
-                            // Throw an error
-                        }
-
-                        if (sizeof(fields[1])/sizeof(char) < minNameLen) {
-                            minNameLen = sizeof(fields[1])/sizeof(char);
-                        }
-                        if (sizeof(fields[2])/sizeof(char) < minBioLen) {
-                            minBioLen = sizeof(fields[2])/sizeof(char);
-                        }
-                    }
-                }
-
-                // Minimize size of records: ID, name, bio, manager_id and then an 8 byte offset for each
-                int minRecordSize = 3 * 8 + minNameLen + minBioLen;
-                int maxRecords = (BLOCK_SIZE) / minRecordSize;
-                return make_tuple(std::vector<int>(maxRecords, 0), static_cast<unsigned long long>(maxRecords) * sizeof(int));
-
-            };
-            
+            int offset = 0; // Offset containing location of the end of the last record
 
             // Method to add a record to this page
             bool addRecord(const std::string& record) {
                 // Check if there is enough space left in the page
-                if (record.size() + sizeof(offsetArray) > BLOCK_SIZE) {
+                if (record.size() + offset > BLOCK_SIZE) {
                     return false; // Not enough space, record not added
                 }
                 // Copy the record data into the page's data vector
@@ -151,7 +110,6 @@ private:
         public:
         // Constructor for the PageList class
         PageList() : head(nullptr) {
-            head->offsetArray, head->offsetArraySize = initializeOffsetArray();
             
         }
 
@@ -190,7 +148,7 @@ private:
 
         // Take neccessary steps if capacity is reached (you've utilized all the blocks in main memory)
     };
-
+    
     };
 
     
