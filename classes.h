@@ -34,9 +34,29 @@ public:
     }
 
     string toString() const {
-        return to_string(id) + "," + name + "," + bio + "," + to_string(manager_id) + "\n";
-    }
+            return to_string(id) + "," + name + "," + bio + "," + to_string(manager_id) + "\n";
+        }
+
+    
 };
+
+// Use to reconstruct records from stringified records on file
+vector<string> stringToVector(const string& recordString) {
+        vector<string> result;
+        stringstream ss(recordString);
+        string item;
+
+        while (getline(ss, item, ',')) {
+            result.push_back(item);
+        }
+
+        // Handle the trailing newline if present
+        if (!result.empty() && !result.back().empty() && result.back().back() == '\n') {
+            result.back().erase(result.back().size() - 1);
+        }
+
+        return result;
+    }
 
 
 class StorageBufferManager {
@@ -163,14 +183,22 @@ class StorageBufferManager {
                     int recordsInPage = 0;
                     int spaceRemaining;
 
-                    // Constructor to initialize a new page with no records and full space
-                    PageHeader() : recordsInPage(0), spaceRemaining(page_size) {
-                        spaceRemaining -= sizeof(PageHeader); // Subtract the size of the header from the space remaining
-                    }; 
+                    PageHeader() : recordsInPage(0), spaceRemaining(page_size - sizeof(PageHeader)) {
+                        // Initialize spaceRemaining considering the header's own size
+                    }
+
+                    // This function is not storing the offset as a member variable but calculating it dynamically
+                    // based on the current layout of the page.
+                    static int calculateDataOffset() {
+                        // Calculate the offset to the start of the data, assuming the data follows immediately after the PageHeader
+                        // If there are additional fixed-size overheads before the data begins, add their sizes here as well.
+                        return sizeof(PageHeader);
+                    }
                 };
 
+
                 PageHeader pageHeader;
-                
+
                 // Constructor for the Page class: Full initialized at instantiation time
                 Page(int pageNum) : pageNumber(pageNum), nextPage(nullptr) {
                     // Assuming 'initializeOffsetArray()' returns a std::tuple<std::vector<int>, unsigned long long>
@@ -240,7 +268,7 @@ class StorageBufferManager {
                     // Check if there is enough space left in the page
                     if (record.toString().size() > pageHeader.spaceRemaining) {
                         cerr << "PAGE:: Not enough space in the page to add the record.\n";
-                        exit (-1); // Not enough space, record not added
+                        return false;
                     }
                 
                     int offsetOfNextRecord = data.size();
@@ -311,7 +339,7 @@ class StorageBufferManager {
                     tail = newPage; // Update the tail to the new page
                 }
                 return head; // Return the head of the list
-            }
+            };
 
               // Destructor for the PageList class
             ~PageList() {
@@ -320,8 +348,19 @@ class StorageBufferManager {
                     Page* temp = current->getNextPage(); // Assuming nextPage points to the next Page in the list
                     delete current; // Free the memory of the current Page
                     current = temp; // Move to the next Page
-                }
+                };
+            };
 
+            void printMainMemory() {
+                Page * page = head;
+                while (page->getPageNumber() < maxPages) {
+                    // Use offset array to locate beginning of record in page memory
+
+                    // Print out fields, formatted
+                    // Print out remaining space on page
+                    page = page->getNextPage();
+                }
+            }
             // Method to dump the data of this page and all subsequent pages to a file
             bool dumpPages(const std::string& filename, int pagesWrittenToFile) {
                 cout << "Dumping pages to file...\n";
@@ -337,21 +376,24 @@ class StorageBufferManager {
                     currentPage->resetPage(); // Reset the page vectors and header
                     currentPage = currentPage->getNextPage(); // Move to the next page
                     }
-                }
-            };
+                };
+            
 
             /*
             Test function: Use to confirm page is being filled properly. 
             */
             void printMainMemory() {
-                Page * page = head;
-                while (page->getPageNumber() < maxPages) {
-                    // Use offset array to locate beginning of record in page memory
-                    // Print out fields, formatted
-                    // Print out remaining space on page
+                Page* page = head;
+                while (page != nullptr) {
+                    // Print the page number as a header for each page's content
+                    cout << "Printing contents of Page Number: " << page->getPageNumber() << endl;
+                    // Now, use the printPageContentsByOffset method to print the contents of the current page
+                    page->printPageContentsByOffset();
+                    // Move to the next page in the list
                     page = page->getNextPage();
                 }
             }
+
         }; // End of PageList definition
 
         // TODO: Implement this function
@@ -378,6 +420,13 @@ class StorageBufferManager {
                 cerr << "Error: Unable to open file for writing.\n";
                 exit(1);
             }
+
+        /*
+        TODO:
+        Create page directory at end of page. Use maxPagesOnDisk to determine how many pages to reserve for directory.
+        What else?
+        */
+        
             return dataFile;
         }
 
@@ -456,15 +505,8 @@ class StorageBufferManager {
                         }
                         currentPage = pageList->head;
                     }
-                    /*
-                    
-                    Account for situation:
-                    Last record, space remaining. 
-
-                    */
-
-
                     // There's room on the current page. Add record
+                    // If returns false, some kind of logic error to resolve
                     else {
                         // Add record to page
                         addFlag = currentPage->addRecord(record);
