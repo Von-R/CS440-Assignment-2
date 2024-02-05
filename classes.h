@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <fstream>
 #include <tuple>
+#include <iomanip>
 using namespace std;
 
 class Record {
@@ -40,8 +41,8 @@ public:
 class StorageBufferManager {
 
     private:
-        
-        const static int BLOCK_SIZE = 4096; // initialize the  block size allowed in main memory according to the question 
+        // initialize the  block size allowed in main memory according to the question 
+        const static int BLOCK_SIZE = 4096; 
         const static int maxPages = 3; // 3 pages in main memory at most 
         ofstream EmployeeRelation;
         // You may declare variables based on your need 
@@ -136,13 +137,45 @@ class StorageBufferManager {
                 int calcSpaceRemaining() {
                     return BLOCK_SIZE - data.size() - offsetArraySize - sizeof(PageHeader);
                 }
+
+                void resetPage() {
+                    pageHeader.recordsInPage = 0;
+                    pageHeader.spaceRemaining = BLOCK_SIZE;
+                    data.clear();
+                    offsetArray.clear();
+                }
+
+                // Test function to print the contents of a page as indexed by their offsets
+                void printPageContentsByOffset() {
+                    cout << "Page Number: " << pageNumber << endl;
+                    cout << "Records in Page: " << pageHeader.recordsInPage << endl;
+                    cout << "Space Remaining: " << pageHeader.spaceRemaining << endl;
+                    cout << "Offset\t\tBeginning of record\t\tRecord Size\n";
+                    for (size_t i = 0; i < offsetArray.size(); ++i) {
+                        // Print the offset in hexadecimal
+                        cout << "0x" << setw(3) << setfill('0') << hex << offsetArray[i] << "\t";
+                        
+                        // Determine the start and end of the current record
+                        int startOffset = offsetArray[i];
+                        int endOffset = (i + 1 < offsetArray.size()) ? offsetArray[i + 1] : data.size();
+                        
+                        // Print the record's contents from startOffset to endOffset
+                        for (int j = startOffset; j < endOffset; ++j) {
+                            cout << data[j];
+                        }
+
+                        cout << "\t" << dec << endOffset - startOffset << "\n"; // Print the size of the record
+                        cout << "\n"; // Move to the next line after printing each record
+                    }
+                }
                 
                 // Method to add a record to this page
                 bool addRecord(const Record& record) {
                     
                     // Check if there is enough space left in the page
                     if (record.toString().size() > pageHeader.spaceRemaining) {
-                        return false; // Not enough space, record not added
+                        cerr << "PAGE:: Not enough space in the page to add the record.\n";
+                        exit (-1); // Not enough space, record not added
                     }
                 
                     int offsetOfNextRecord = data.size();
@@ -171,23 +204,6 @@ class StorageBufferManager {
                     return this->nextPage;
                 }
 
-                // For testing:
-                void printPageContents() {
-                    // Print page header information
-                    cout << "Records in Page: " << pageHeader.recordsInPage << endl;
-                    cout << "Space Remaining: " << pageHeader.spaceRemaining << endl;
-
-                    for (int elem: offsetArray){
-                        cout << elem << " ";
-                    }
-                    cout << endl;
-
-                    for (char elem : data) {
-                        cout << elem;
-                    }
-                    cout << endl;
-                }
-
                 /*
                 // Method to dump (write) the current page's data to a file
                 void dumpPage(const std::string& filename) {
@@ -202,14 +218,7 @@ class StorageBufferManager {
                 } */
                 }; // End of Page definition
                 
-                // Method to dump the data of this page and all subsequent pages to a file
-                bool dumpPages(const std::string& filename) {
-                    Page* currentPage = this; // Start with the current page
-                    while(currentPage != nullptr) {
-                        currentPage->dumpPage(filename); // Dump current page's data
-                        currentPage = currentPage->nextPage; // Move to the next page
-                    }
-                }
+                
                 
 
         // Contains linked list of pages and necessary functions
@@ -239,6 +248,25 @@ class StorageBufferManager {
                 return head; // Return the head of the list
             }
 
+            // Method to dump the data of this page and all subsequent pages to a file
+            bool dumpPages(const std::string& filename, int pagesWrittenToFile) {
+                cout << "Dumping pages to file...\n";
+                cout << "IMPLEMENTATION PENDING\n";
+                Page *currentPage = head; // Start with the current page
+                while(currentPage != nullptr) {
+                    //currentPage->printPageContentsByOffset(); // Dump current page's data
+                    /*
+                        currentPage->pageHeader.pageNumber = pagesWrittenToFile;
+                        pagesWrittenToFile++;
+                        Write to file
+                    */
+
+                    currentPage->resetPage(); // Reset the page
+                    currentPage = currentPage->getNextPage(); // Move to the next page
+                }
+                
+            }
+
             /*
             Test function: Use to confirm page is being filled properly. 
             */
@@ -261,6 +289,7 @@ class StorageBufferManager {
 
             //initialize your variables
             int maxPages = 3; // 3 pages in main memory at most 
+            int pagesWrittenToFile = 0; // number of pages written to file. Track so that written pages are indexed by page number.
 
             // Create your EmployeeRelation.dat file 
             FILE * EmployeeRelation;
@@ -335,7 +364,7 @@ class StorageBufferManager {
                     // Write contents to file, then 
                     if (spaceRemaining < recordSize && currentPage->getPageNumber() == maxPages - 1) {
                         // Write page to file
-                        dumpFlag = dumpPages(EmployeeRelation);
+                        dumpFlag = dumpPages(EmployeeRelation, pagesWrittenToFile);
                         if (dumpFlag == false) {
                             cerr << "Failure to copy main memory contents to file. Terminating..." << endl;
                             exit(-1);
@@ -399,7 +428,7 @@ class StorageBufferManager {
                         // Check if ID matches
                         if (stoi(fields[0]) == id) {
                             // Return record
-                            return Record(fields);
+                            return &Record(fields).toString();
                         }
                     }
                 }

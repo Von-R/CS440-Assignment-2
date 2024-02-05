@@ -26,6 +26,20 @@ int main(int argc, char* const argv[]) {
     manager.createFromFile("Employee.csv");
     
     // Loop to lookup IDs until user is ready to quit
+    while (true) {
+        string input;
+        string * r;
+        cout << "Enter an ID to lookup: ";
+        cin >> input;
+        if (input == "q") {
+            break;
+        }
+        int id = stoi(input);
+        
+        // needs work
+        // r = manager.findRecordByID(id);
+
+    }
     
 
     return 0;
