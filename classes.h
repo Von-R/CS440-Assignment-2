@@ -106,7 +106,9 @@ class StorageBufferManager {
             Page *nextPage; // Pointer to the next page in the list
             vector<char> data; // Vector to store the data in the page
             vector<int> offsetArray; // Vector to store the offsets of the records in the page
+            unsigned long long static dataVectorSize;
             unsigned long long static offsetArraySize;
+
             
             public:
                 // Constructor for the Page class: Full initialized at instantiation time
@@ -118,8 +120,10 @@ class StorageBufferManager {
 
                     pageHeader = PageHeader(); // Assuming BLOCK_SIZE is known and set in PageHeader's constructor
 
-                    // Now that 'offsetArraySize' and 'pageHeader' are initialized, resize 'data'
-                    data.resize(BLOCK_SIZE - offsetArraySize - sizeof(PageHeader));
+                    // Now that 'offsetArraySize' and 'pageHeader' are initialized, calc size of data vector
+                    // Resize data vector be correct size
+                    dataVectorSize = BLOCK_SIZE - offsetArraySize - sizeof(PageHeader);
+                    data.resize(dataVectorSize);
                 };
 
                 // Getters
@@ -219,9 +223,10 @@ class StorageBufferManager {
                 head = initializePageList();
             }
 
-            // Method to initialize the pages and link them together
+            // Create 'maxPages' number of pages and link them together
+            // Initialization of head member attirbutes done in head constructor
             Page* initializePageList() {
-                Page *tail = nullptr; // Pointer to the last page in the list
+                Page *tail = nullptr;
                 for (int i = 0; i < maxPages; ++i) {
                     Page *newPage = new Page(i); // Create a new page
                     if (!head) {
@@ -311,33 +316,24 @@ class StorageBufferManager {
                     recordSize = record.recordSize();
 
                     // Error check that record size is less than block size
-                    if (recordSize > BLOCK_SIZE) {
+                    if (recordSize > currentPage->dataVectorSize) {
                         cerr << "Record size exceeds block size.\n";
                         exit(1);
                     }
                     
-
-                    /*
-                    
-                    void function() {
-                        while 
-                    }
-                    
-                    */
-
                     // determine if there's enough room on current page:
                         // if not and not last page, begin writing to next page
                         // if not and last page, write page to file and empty page
                     spaceRemaining = currentPage->calcSpaceRemaining();
 
-                    // Current page full and page not last page
-                    if (spaceRemaining < recordSize && currentPage->getPageNumber() < maxPages - 1) {
+                    // While current page full and page not last page
+                    while (spaceRemaining < recordSize && currentPage->getPageNumber() < maxPages - 1) {
                         // Advance to next page
                         currentPage = currentPage->goToNextPage();
                     }
                     // Main memory full: no room for record on any pages
                     // Write contents to file, then 
-                    else if (spaceRemaining < recordSize && currentPage->getPageNumber() == maxPages - 1) {
+                    if (spaceRemaining < recordSize && currentPage->getPageNumber() == maxPages - 1) {
                         // Write page to file
                         dumpFlag = dumpPages(EmployeeRelation);
                         if (dumpFlag == false) {
