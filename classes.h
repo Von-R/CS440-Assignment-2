@@ -355,7 +355,7 @@ class StorageBufferManager {
 
             //initialize your variables
             int maxPages = 3; // 3 pages in main memory at most 
-            auto resultTuple = initializeValues();
+            auto static resultTuple = initializeValues();
           
             // Create your EmployeeRelation.dat file 
             FILE * EmployeeRelation;
