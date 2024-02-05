@@ -41,7 +41,7 @@ public:
 
 class StorageBufferManager {
 
-    private:
+    public:
         // initialize the  block size allowed in main memory according to the question 
         const static int BLOCK_SIZE = 4096; 
         const static int maxPages = 3; // 3 pages in main memory at most 
@@ -49,8 +49,30 @@ class StorageBufferManager {
         // You may declare variables based on your need 
         int numRecords; // number of records in the file
         int pagesWrittenToFile = 0; // number of pages written to file. Track so that written pages are indexed by page number.
-        tuple<std::vector<int>, unsigned long long, unsigned long long, unsigned long long> initializationResults;
-   
+        tuple<std::vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializationResults;
+        int static maxPagesOnDisk;
+
+
+        StorageBufferManager(string NewFileName) { 
+            cout << "Hello" << endl;
+
+            //initialize your variables
+            int maxPages = 3; // 3 pages in main memory at most 
+            /*
+                This variable contains:
+                    offset array of size maxRecords, filled with 0's
+                    the size of the offsetArray
+                    the total count of all records
+                    the max size of record, used later to calc min number of pages needed
+            
+            */
+            initializationResults = initializeValues();
+            
+          
+            // Create your EmployeeRelation.dat file 
+            FILE * EmployeeRelation;
+            EmployeeRelation = fopen(NewFileName.c_str(), "w");
+        };
         
 
         // Function to initialize the values of the variables
@@ -61,7 +83,7 @@ class StorageBufferManager {
             ??? the minimum number of pages required on disk file: 
 
         */
-        tuple<std::vector<int>, unsigned long long> static initializeValues() {
+         tuple<std::vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializeValues() {
 
                     int fileCount = 0;
                     int minBioLen = INT_MAX;
@@ -115,8 +137,9 @@ class StorageBufferManager {
                     // Returns tuple containing offset array of size maxRecords, filled with 0's, and the size of the array
                     //         the total count of all records
                     //         the max size of record, used later to calc min number of pages needed
-                    return make_tuple(std::vector<int>(maxRecords, 0), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<int>(fileCount), 
-                    static_cast<int>(maxRecordSize));
+                    return make_tuple(std::vector<int>(maxRecords, 0), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(fileCount), 
+                    static_cast<unsigned long long>(maxRecordSize));
+
 
                 };
 
@@ -124,21 +147,8 @@ class StorageBufferManager {
 
         class Page {
             
-            static const int BLOCK_SIZE = 4096; // Define the size of each page (4KB)
-
-            struct PageHeader {
-                friend class PageList;
-                int recordsInPage = 0;
-                int spaceRemaining;
-
-                // Constructor to initialize a new page with no records and full space
-                PageHeader() : recordsInPage(0), spaceRemaining(BLOCK_SIZE) {
-                    spaceRemaining -= sizeof(PageHeader); // Subtract the size of the header from the space remaining
-                }; 
-            };
-
+            static const int page_size = BLOCK_SIZE; // Define the size of each page (4KB)
             int pageNumber; // Identifier for the page
-            PageHeader pageHeader;
             Page *nextPage; // Pointer to the next page in the list
             vector<char> data; // Vector to store the data in the page
             vector<int> static offsetArray; // Vector to store the offsets of the records in the page
@@ -147,6 +157,20 @@ class StorageBufferManager {
 
             
             public:
+
+                struct PageHeader {
+                    friend class PageList;
+                    int recordsInPage = 0;
+                    int spaceRemaining;
+
+                    // Constructor to initialize a new page with no records and full space
+                    PageHeader() : recordsInPage(0), spaceRemaining(page_size) {
+                        spaceRemaining -= sizeof(PageHeader); // Subtract the size of the header from the space remaining
+                    }; 
+                };
+
+                PageHeader pageHeader;
+                
                 // Constructor for the Page class: Full initialized at instantiation time
                 Page(int pageNum) : pageNumber(pageNum), nextPage(nullptr) {
                     // Assuming 'initializeOffsetArray()' returns a std::tuple<std::vector<int>, unsigned long long>
@@ -266,7 +290,7 @@ class StorageBufferManager {
         class PageList {
             public:
             Page *head;
-            static const int maxPages = 3; 
+            //static const int maxPages = 3; 
             // Constructor for the PageList class
             // Head is initialized as page 0 and linked list created from it
             PageList() {
@@ -336,6 +360,16 @@ class StorageBufferManager {
         reserve space of page directory. 
         store relevant info in file header
         */
+        void setMaxPagesOnDisk() {
+            // Assuming:
+            // BLOCK_SIZE is the size of a page in bytes.
+            // sizeof(Page::PageHeader) gives the static size of the page header.
+            // get<1>(initializationResults) returns the total size of the offset array in bytes.
+            // get<2>(initializationResults) provides the size of the largest record.
+
+            StorageBufferManager::maxPagesOnDisk = (BLOCK_SIZE - sizeof(Page::PageHeader) - get<1>(initializationResults)) / get<2>(initializationResults);
+
+        };
 
         FILE * initializeDataFile(string filename) {
             FILE * dataFile;
@@ -346,21 +380,6 @@ class StorageBufferManager {
             }
             return dataFile;
         }
-
-        
-    
-    public:
-        StorageBufferManager(string NewFileName) { 
-            cout << "Hello" << endl;
-
-            //initialize your variables
-            int maxPages = 3; // 3 pages in main memory at most 
-            auto static resultTuple = initializeValues();
-          
-            // Create your EmployeeRelation.dat file 
-            FILE * EmployeeRelation;
-            EmployeeRelation = fopen(NewFileName.c_str(), "w");
-        };
 
         // Create record from csv line
         Record createRecord(string line) {
@@ -462,7 +481,7 @@ class StorageBufferManager {
                             cerr << "Failure to copy main memory contents to file. Terminating..." << endl;
                             exit(-1);
                 }
-            }
+            };
 
             /*
             int getRecordCount(string filename) {
@@ -507,7 +526,9 @@ class StorageBufferManager {
                 EmployeeRelation.close();
             }
             
-        }
+        };
     }; 
         };
+};
+
     
