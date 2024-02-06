@@ -450,10 +450,11 @@ class StorageBufferManager {
             return Record(fields);
         };
 
-          void exitProgram(ofstream &EmpStream) {
+        void exitProgram(ofstream &EmpStream) {
             if (EmpStream.is_open()) {
                 EmpStream.close();
             }
+            ~pageList();
             
         };
 
@@ -553,6 +554,7 @@ class StorageBufferManager {
                             exit(-1);
                     */
                 }
+                delete pageList;
             };
 
             /*
