@@ -565,7 +565,7 @@ class StorageBufferManager {
                         cerr << "Record size exceeds block size.\n";
                         exit(1);
                     }
-                    cout << "CreateFromFile: Record size is less than size of currPage dataVector...\n";
+                    cout << "CreateFromFile:: Error check passed:  Record size is less than size of currPage dataVector...\n";
                     
                     // determine if there's enough room on current page:
                         // if not and not last page, begin writing to next page
@@ -580,11 +580,11 @@ class StorageBufferManager {
                         // Advance to next page
                         currentPage = currentPage->goToNextPage();
                         addFlag = currentPage->addRecord(record);
+                        spaceRemaining = currentPage->calcSpaceRemaining();
                         if (addFlag == false) {
                             cerr << "Size mismatch on NEXT PAGE ADD. Terminating..." << endl;
                             exit(-1);
                         }
-                        continue;
                     }
                     // Main memory full: no room for record on any pages
                     // Write contents to file, then 
