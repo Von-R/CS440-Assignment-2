@@ -42,7 +42,7 @@ public:
 
 // Reconstruct fields vector from stringified records on file
 // Used to reconstruct records from file
-vector<string> stringToVector(const string& recordString) {
+inline vector<string> stringToVector(const string& recordString) {
         vector<string> result;
         stringstream ss(recordString);
         string item;
