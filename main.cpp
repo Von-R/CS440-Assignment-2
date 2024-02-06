@@ -40,6 +40,7 @@ int main(int argc, char* const argv[]) {
         // r = manager.findRecordByID(id);
 
     }
+    //exitProgram();
     
 
     return 0;

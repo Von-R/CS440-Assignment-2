@@ -454,8 +454,6 @@ class StorageBufferManager {
             if (EmpStream.is_open()) {
                 EmpStream.close();
             }
-            ~pageList();
-            
         };
 
         
