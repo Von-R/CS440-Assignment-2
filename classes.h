@@ -343,12 +343,17 @@ class StorageBufferManager {
                 cout << "initializePageList begin" << endl;
                 Page *tail = nullptr;
                 for (int i = 0; i < maxPages; ++i) {
+                    cout << "Creating page " << i << endl;
                     Page *newPage = new Page(i); // Create a new page
+                    cout << "Page " << i << " created" << endl;
                     if (!head) {
+                        cout << "Setting head to page " << i << endl;
                         head = newPage; // If it's the first page, set it as head
                     } else {  
+                        cout << "Linking page " << i << " to page " << i - 1 << endl;
                         tail->setNextPage(newPage); // Otherwise, link it to the last page
                     }
+                    cout << "Setting tail to page " << i << endl;
                     tail = newPage; // Update the tail to the new page
                 }
                 cout << "initializePageList end" << endl;
