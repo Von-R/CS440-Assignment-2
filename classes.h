@@ -68,12 +68,13 @@ class StorageBufferManager {
         // initialize the  block size allowed in main memory according to the question 
         const static int BLOCK_SIZE = 4096; 
         const static int maxPages = 3; // 3 pages in main memory at most 
-        ofstream EmployeeRelation;
+        fstream EmployeeRelation;
         // You may declare variables based on your need 
         int numRecords; // number of records in the file
         int pagesWrittenToFile = 0; // number of pages written to file. Track so that written pages are indexed by page number.
         tuple<std::vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializationResults;
         int static maxPagesOnDisk;
+        int pagesWrittenToFile = 0;
 
 
         StorageBufferManager(string NewFileName) { 
@@ -91,15 +92,6 @@ class StorageBufferManager {
             */
             initializationResults = initializeValues();
             
-          
-            // Create your EmployeeRelation.dat file 
-            FILE * EmployeeRelation;
-            EmployeeRelation = fopen(NewFileName.c_str(), "w");
-
-            if (EmployeeRelation == NULL) {
-                cerr << "Error: Unable to open file for writing.\n";
-                exit(1);
-            }
             cout << "StorageBufferManager constructor end" << endl;
         };
         
@@ -269,14 +261,7 @@ class StorageBufferManager {
                 this->nextPage = nextPage;
             }
 
-            void resetPage() {
-                cout << "resetPage begin" << endl;
-                data.clear();
-                emptyOffsetArray();
-                pageHeader.recordsInPage = 0;
-                pageHeader.spaceRemaining = calcSpaceRemaining();
-                cout << "resetPage end" << endl;
-            }
+            
 
             // Test function to print the contents of a page as indexed by their offsets
             void printPageContentsByOffset() {
@@ -420,22 +405,37 @@ class StorageBufferManager {
                 cout << "PageList destructor end" << endl;
             };
 
+            void resetPages() {
+                cout << "resetPage begin" << endl;
+                Page * current = head;
+                while (current != nullptr) {
+                    current->emptyData();
+                    current->emptyOffsetArray();
+                    current->pageHeader.recordsInPage = 0;
+                    current->pageHeader.spaceRemaining = current->calcSpaceRemaining();
+                    current = current->getNextPage();
+                }
+                cout << "resetPage end" << endl;
+            }
+
             // Method to dump the data of this page and all subsequent pages to a file
-            bool dumpPages(const std::string& filename, int pagesWrittenToFile) {
+            bool dumpPages(fstream & filename, int pagesWrittenToFile) {
                 cout << "dumpPages begin" << endl;
                 cout << "Dumping pages to file...\n";
                 cout << "IMPLEMENTATION PENDING\n";
                 Page *currentPage = head; // Start with the current page
                 while(currentPage != nullptr) {
+
                     //currentPage->printPageContentsByOffset(); // Dump current page's data
                     /*
                         currentPage->pageHeader.pageNumber = pagesWrittenToFile;
                         pagesWrittenToFile++;
                         Write to file
                     */
-                    currentPage->resetPage(); // Reset the page vectors and header
+                    
                     currentPage = currentPage->getNextPage(); // Move to the next page
                     }
+                    resetPages();
                     cout << "dumpPages end" << endl;
                 };
             
@@ -476,22 +476,22 @@ class StorageBufferManager {
 
         };
 
-        FILE * initializeDataFile(string filename) {
+        fstream initializeDataFile(const string& filename) {
             cout << "initializeDataFile begin" << endl;
-            FILE * dataFile;
-            dataFile = fopen(filename.c_str(), "w");
-            if (dataFile == NULL) {
+            fstream EmployeeRelation;
+            EmployeeRelation.open(filename, ios::in | ios::out | ios::binary | ios::trunc);
+            if (!EmployeeRelation.is_open()) {
                 cerr << "Error: Unable to open file for writing.\n";
                 exit(1);
             }
 
-        /*
-        TODO:
-        Create page directory at end of page. Use maxPagesOnDisk to determine how many pages to reserve for directory.
-        What else?
-        */
-        cout << "initializeDataFile end" << endl;
-            return dataFile;
+            /*
+            TODO:
+            Create page directory at end of page. Use maxPagesOnDisk to determine how many pages to reserve for directory.
+            What else?
+            */
+
+            cout << "initializeDataFile end" << endl;
         }
 
         // Create record from csv line
@@ -537,6 +537,8 @@ class StorageBufferManager {
             
             // Open source file for reading source csv
             ifstream fileStream(csvFName.c_str());
+            EmployeeRelation = initializeDataFile("EmployeeRelation.dat");
+            
 
             // Buffer for reading line from csv: equal to max possible record size plus 1
             char buffer[2* 8 + 200 + 500 + 1];
@@ -587,7 +589,8 @@ class StorageBufferManager {
                         //    cerr << "Failure to copy main memory contents to file. Terminating..." << endl;
                         //    exit(-1);
                         //}
-                        currentPage = pageList->head;
+                        
+                        pageList->dumpPages(EmployeeRelation, pagesWrittenToFile);
                     }
                     // There's room on the current page. Add record
                     // If returns false, some kind of logic error to resolve
@@ -613,6 +616,7 @@ class StorageBufferManager {
                             cerr << "Failure to copy main memory contents to file. Terminating..." << endl;
                             exit(-1);
                     */
+                    pageList->dumpPages(EmployeeRelation, pagesWrittenToFile);
                 }
                 delete pageList;
             };
