@@ -75,7 +75,7 @@ class StorageBufferManager {
 
 
         StorageBufferManager(string NewFileName) { 
-            cout << "Hello" << endl;
+            cout << "CP1" << endl;
 
             //initialize your variables
             int maxPages = 3; // 3 pages in main memory at most 
@@ -105,6 +105,7 @@ class StorageBufferManager {
 
         */
          tuple<std::vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializeValues() {
+                    cout << "initializeValues begin" << endl;
 
                     int fileCount = 0;
                     int minBioLen = INT_MAX;
@@ -158,62 +159,63 @@ class StorageBufferManager {
                     // Returns tuple containing offset array of size maxRecords, filled with 0's, and the size of the array
                     //         the total count of all records
                     //         the max size of record, used later to calc min number of pages needed
-                    return make_tuple(std::vector<int>(maxRecords, 0), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(fileCount), 
+                    cout << "initializeValues end" << endl;
+                    return make_tuple(std::vector<int>(maxRecords, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(fileCount), 
                     static_cast<unsigned long long>(maxRecordSize));
 
 
                 };
 
+    class Page {
+        static const int page_size = BLOCK_SIZE; // Define the size of each page (4KB)
+        int pageNumber; // Identifier for the page
+        Page *nextPage; // Pointer to the next page in the list
+        vector<char> data; // Vector to store the data in the page
+        vector<int> offsetArray; // Vector to store the offsets of the records in the page
+        // These are static members of the Page class because the offsetArray and dataVector sizes will be shared by all instances of the Page class
+        int static offsetArraySize;
+        int static dataVectorSize;
+        static const char sentinelValue = '&'; // Sentinel value to indicate empty space in the data vector
+
+        //int validCount = 
         
+        int dataSize(const std::vector<char>& data, char sentinelValue) {
+            return std::count_if(data.begin(), data.end(), [sentinelValue](char value) {
+            return value != sentinelValue;
+            });
+        }
 
-        class Page {
+    public:
+        struct PageHeader {
+            int recordsInPage = 0;
+            int spaceRemaining; // Updated to be initialized later in Page constructor
+
+            PageHeader() : recordsInPage(0) {} // Constructor simplified
+        } pageHeader;
+
+        // Constructor for the Page class
+        Page(int pageNum) : pageNumber(pageNum), nextPage(nullptr) {
+            offsetArray = get<0>(initializationResults); // Instance-specific offsetArray is initialized with 0's
+
             
-            static const int page_size = BLOCK_SIZE; // Define the size of each page (4KB)
-            int pageNumber; // Identifier for the page
-            Page *nextPage; // Pointer to the next page in the list
-            vector<char> data; // Vector to store the data in the page
-            vector<int> offsetArray; // Vector to store the offsets of the records in the page
-            unsigned long long static dataVectorSize;
-            unsigned long long static offsetArraySize;
 
-            
-            public:
+            // Initialize pageHeader's spaceRemaining here, after data and offsetArray sizes are known
+            // For simplicity, let's assume offsetArraySize is calculated elsewhere or passed in
+            // as part of initializationResults, and similarly with dataVectorSize if needed
+            offsetArraySize = get<1>(initializationResults); // Update this based on actual logic
 
-                struct PageHeader {
-                    friend class PageList;
-                    int recordsInPage = 0;
-                    int spaceRemaining;
+            dataVectorSize = page_size - offsetArraySize - sizeof(PageHeader);
+            // Initialize data vector to its maximum potential size first; sentinel value is -1
+            data.resize(dataVectorSize, sentinelValue);
+            // Initialize space remaining in the page
+            pageHeader.spaceRemaining = dataVectorSize - dataSize(data, sentinelValue);
+        }
 
-                    PageHeader() : recordsInPage(0), spaceRemaining(page_size - sizeof(PageHeader)) {
-                        // Initialize spaceRemaining considering the header's own size
-                    }
+        int calcSpaceRemaining() {
+            // Calculate the space remaining based on current usage
+            return pageHeader.spaceRemaining - data.size() - (offsetArray.size() * sizeof(int));
+        }
 
-                    // This function is not storing the offset as a member variable but calculating it dynamically
-                    // based on the current layout of the page.
-                    static int calculateDataOffset() {
-                        // Calculate the offset to the start of the data, assuming the data follows immediately after the PageHeader
-                        // If there are additional fixed-size overheads before the data begins, add their sizes here as well.
-                        return sizeof(PageHeader);
-                    }
-                };
-
-
-                PageHeader pageHeader;
-
-                // Constructor for the Page class: Full initialized at instantiation time
-                Page(int pageNum) : pageNumber(pageNum), nextPage(nullptr) {
-                    // Assuming 'initializeOffsetArray()' returns a std::tuple<std::vector<int>, unsigned long long>
-                    
-                    offsetArray = get<0>(initializationResults);
-                    offsetArraySize = get<1>(initializationResults);
-
-                    pageHeader = PageHeader(); // Assuming BLOCK_SIZE is known and set in PageHeader's constructor
-
-                    // Now that 'offsetArraySize' and 'pageHeader' are initialized, calc size of data vector
-                    // Resize data vector be correct size
-                    dataVectorSize = BLOCK_SIZE - offsetArraySize - sizeof(PageHeader);
-                    data.resize(dataVectorSize);
-                };
 
                 // Getters
                 int getPageNumber() {return pageNumber;}
@@ -222,15 +224,19 @@ class StorageBufferManager {
                 int getOffsetArraySize() {return offsetArraySize;}
                 int getDataVectorSize() {return dataVectorSize;}
                 bool checkDataEmpty() {return data.empty();}
-
-                // Method to calculate the space remaining on the current page
-                int calcSpaceRemaining() {
-                    return BLOCK_SIZE - data.size() - offsetArraySize - sizeof(PageHeader);
+                // Getter method to return the next page in the list
+                Page * goToNextPage() {
+                    return this->nextPage;
                 }
+                
 
                 // Setters
                 void emptyData() {data.clear();}
                 void emptyOffsetArray() {offsetArray.clear();}
+                // Setter method to link this page to the next page
+                void setNextPage(Page* nextPage) {
+                    this->nextPage = nextPage;
+                }
 
                 void resetPage() {
                     pageHeader.recordsInPage = 0;
@@ -263,41 +269,31 @@ class StorageBufferManager {
                     }
                 }
                 
-                // Method to add a record to this page
                 bool addRecord(const Record& record) {
+                    auto recordString = record.toString();
+                    size_t recordSize = recordString.size();
                     
-                    // Check if there is enough space left in the page
-                    if (record.toString().size() > pageHeader.spaceRemaining) {
-                        cerr << "PAGE:: Not enough space in the page to add the record.\n";
+                    // Check if there's enough space left in the page
+                    if (recordSize > static_cast<size_t>(pageHeader.spaceRemaining)) {
+                        std::cerr << "PAGE:: Not enough space in the page to add the record.\n";
                         return false;
                     }
-                
-                    int offsetOfNextRecord = data.size();
-                    // Copy the record data into the page's data vector
-                    if (offsetArray.empty()) {
-                        copy(record.toString().begin(), record.toString().end(), data.begin());
-                        pageHeader.recordsInPage += 1;
-                        pageHeader.spaceRemaining -= record.toString().size();
-                    } else {
-                        copy(record.toString().begin(), record.toString().end(), data.begin() + offsetOfNextRecord);
-                        pageHeader.recordsInPage += 1;
-                        pageHeader.spaceRemaining -= record.toString().size();
-                    }
-                    this->offsetArray.push_back(offsetOfNextRecord);
                     
-                    // Update the offset to the new end of the data
-                    return true; // Record added successfully
+                    // Calculate the offset for the new record
+                    int offsetOfNextRecord = data.size();
+                    
+                    // Ensure the insertion does not exceed the vector's predefined max size
+                    if (offsetOfNextRecord + recordSize <= data.size()) {
+                        std::copy(recordString.begin(), recordString.end(), data.begin() + offsetOfNextRecord);
+                        pageHeader.recordsInPage += 1;
+                        pageHeader.spaceRemaining -= recordSize;
+                        offsetArray.push_back(offsetOfNextRecord);
+                        return true;
+                    } else {
+                        std::cerr << "Error: Attempt to exceed predefined max size of data vector.\n";
+                        return false;
+                    }
                 }
-
-                // Setter method to link this page to the next page
-                void setNextPage(Page* nextPage) {
-                    this->nextPage = nextPage;
-                }
-
-                Page * goToNextPage() {
-                    return this->nextPage;
-                }
-
             }; // End of Page definition
                 
                 

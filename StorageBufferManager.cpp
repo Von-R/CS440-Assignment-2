@@ -4,5 +4,6 @@
 tuple<vector<int>, unsigned long long, unsigned long long, unsigned long long> StorageBufferManager::initializationResults;
 int StorageBufferManager::maxPagesOnDisk;
 
-unsigned long long StorageBufferManager::Page::dataVectorSize;
-unsigned long long StorageBufferManager::Page::offsetArraySize;
+int StorageBufferManager::Page::dataVectorSize;
+int StorageBufferManager::Page::offsetArraySize;
+const char StorageBufferManager::Page::sentinelValue; 
