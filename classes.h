@@ -183,7 +183,7 @@ class StorageBufferManager {
         // These are static members of the Page class because the offsetArray and dataVector sizes will be shared by all instances of the Page class
         int static offsetArraySize;
         int static dataVectorSize;
-        static const char sentinelValue = '&'; // Sentinel value to indicate empty space in the data vector
+        static const char sentinelValue = '\0'; // Sentinel value to indicate empty space in the data vector
 
         //int validCount = 
         
@@ -203,7 +203,6 @@ class StorageBufferManager {
             cout << "offsetSize end" << endl;
             return count;
         }
-
 
     public:
         struct PageHeader {
@@ -305,6 +304,19 @@ class StorageBufferManager {
                     }
                     cout << "printPageContentsByOffset end" << endl;
                 }
+
+                int findOffsetOfNextRecord(const std::vector<char>& data, char sentinelValue) {
+                    // Start from the end of the vector and move backwards
+                    for (int i = data.size() - 1; i >= 0; --i) {
+                        if (data[i] != sentinelValue) {
+                            // Found the last non-sentinel character, return the next position
+                            return i + 1;
+                        }
+                    }
+                    // If all characters are sentinel values or the vector is empty, return 0
+                    return 0;
+                }
+
                 
                 bool addRecord(const Record& record) {
                     cout << "addRecord begin" << endl;
@@ -313,13 +325,13 @@ class StorageBufferManager {
                     
                     // Check if there's enough space left in the page
                     if (recordSize > static_cast<size_t>(pageHeader.spaceRemaining)) {
-                        std::cerr << "PAGE:: Not enough space in the page to add the record.\n";
+                        std::cerr << "addRecord:: Not enough space in the page to add the record.\n";
                         return false;
                     }
                     
                     // Calculate the offset for the new record
-                    int offsetOfNextRecord = data.size();
-                    
+                    int offsetOfNextRecord = findOffsetOfNextRecord(data, sentinelValue);
+
                     // Ensure the insertion does not exceed the vector's predefined max size
                     if (offsetOfNextRecord + recordSize <= data.size()) {
                         std::copy(recordString.begin(), recordString.end(), data.begin() + offsetOfNextRecord);
@@ -327,11 +339,16 @@ class StorageBufferManager {
                         pageHeader.spaceRemaining -= recordSize;
                         offsetArray.push_back(offsetOfNextRecord);
                         return true;
+                    } else if (offsetOfNextRecord + recordSize > data.size()) {
+                        std::cerr << "addRecord:: Error: Attempt to exceed predefined max size of data vector.\n";
+                        cout << "addRecord failed" << endl;
+                        return false;
                     } else {
-                        std::cerr << "Error: Attempt to exceed predefined max size of data vector.\n";
+                        std::cerr << "addRecord:: Error: Unknown error occurred while adding record to page.\n";
+                        cout << "addRecord failed" << endl;
                         return false;
                     }
-                    cout << "addRecord end" << endl;
+                    cout << "addRecord successful" << endl;
                 }
             }; // End of Page definition
                 
