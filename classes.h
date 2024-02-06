@@ -178,12 +178,12 @@ class StorageBufferManager {
         static const int page_size = BLOCK_SIZE; // Define the size of each page (4KB)
         int pageNumber; // Identifier for the page
         Page *nextPage; // Pointer to the next page in the list
-        vector<char> data; // Vector to store the data in the page
-        vector<int> offsetArray; // Vector to store the offsets of the records in the page
         // These are static members of the Page class because the offsetArray and dataVector sizes will be shared by all instances of the Page class
         int static offsetArraySize;
         int static dataVectorSize;
         static const char sentinelValue = '\0'; // Sentinel value to indicate empty space in the data vector
+        vector<int> offsetArray; // Vector to store the offsets of the records in the page
+        vector<char> data; // Vector to store the data in the page
 
         //int validCount = 
         
@@ -334,6 +334,7 @@ class StorageBufferManager {
 
                     // Ensure the insertion does not exceed the vector's predefined max size
                     if (offsetOfNextRecord + recordSize <= data.size()) {
+                        cout << "addRecord:: Adding record to page...\n";
                         std::copy(recordString.begin(), recordString.end(), data.begin() + offsetOfNextRecord);
                         pageHeader.recordsInPage += 1;
                         pageHeader.spaceRemaining -= recordSize;
