@@ -43,6 +43,7 @@ public:
 // Reconstruct fields vector from stringified records on file
 // Used to reconstruct records from file
 inline vector<string> stringToVector(const string& recordString) {
+    cout << "stringToVector begin" << endl;
         vector<string> result;
         stringstream ss(recordString);
         string item;
@@ -56,6 +57,7 @@ inline vector<string> stringToVector(const string& recordString) {
             result.back().erase(result.back().size() - 1);
         }
 
+        cout << "stringToVector end" << endl;
         return result;
     }
 
@@ -75,7 +77,7 @@ class StorageBufferManager {
 
 
         StorageBufferManager(string NewFileName) { 
-            cout << "CP1" << endl;
+            cout << "StorageBufferManager constructor begin" << endl;
 
             //initialize your variables
             int maxPages = 3; // 3 pages in main memory at most 
@@ -93,6 +95,12 @@ class StorageBufferManager {
             // Create your EmployeeRelation.dat file 
             FILE * EmployeeRelation;
             EmployeeRelation = fopen(NewFileName.c_str(), "w");
+
+            if (EmployeeRelation == NULL) {
+                cerr << "Error: Unable to open file for writing.\n";
+                exit(1);
+            }
+            cout << "StorageBufferManager constructor end" << endl;
         };
         
 
@@ -180,9 +188,11 @@ class StorageBufferManager {
         //int validCount = 
         
         int dataSize(const std::vector<char>& data, char sentinelValue) {
+            cout << "dataSize begin" << endl;
             return std::count_if(data.begin(), data.end(), [sentinelValue](char value) {
             return value != sentinelValue;
             });
+            cout << "dataSize end" << endl;
         }
 
     public:
@@ -195,6 +205,9 @@ class StorageBufferManager {
 
         // Constructor for the Page class
         Page(int pageNum) : pageNumber(pageNum), nextPage(nullptr) {
+            cout << "Page constructor begin" << endl;
+
+            // Initialize the page with the given page number
             offsetArray = get<0>(initializationResults); // Instance-specific offsetArray is initialized with 0's
 
             
@@ -209,9 +222,11 @@ class StorageBufferManager {
             data.resize(dataVectorSize, sentinelValue);
             // Initialize space remaining in the page
             pageHeader.spaceRemaining = dataVectorSize - dataSize(data, sentinelValue);
+            cout << "Page constructor end" << endl;
         }
 
         int calcSpaceRemaining() {
+            cout << "calcSpaceRemaining entered:" << endl;
             // Calculate the space remaining based on current usage
             return pageHeader.spaceRemaining - data.size() - (offsetArray.size() * sizeof(int));
         }
@@ -239,14 +254,18 @@ class StorageBufferManager {
                 }
 
                 void resetPage() {
+                    cout << "resetPage begin" << endl;
                     pageHeader.recordsInPage = 0;
                     pageHeader.spaceRemaining = BLOCK_SIZE;
                     data.clear();
                     offsetArray.clear();
+                    cout << "resetPage end" << endl;
                 }
 
                 // Test function to print the contents of a page as indexed by their offsets
                 void printPageContentsByOffset() {
+
+                    cout << "printPageContentsByOffset begin" << endl;
                     cout << "Page Number: " << pageNumber << endl;
                     cout << "Records in Page: " << pageHeader.recordsInPage << endl;
                     cout << "Space Remaining: " << pageHeader.spaceRemaining << endl;
@@ -267,9 +286,11 @@ class StorageBufferManager {
                         cout << "\t" << dec << endOffset - startOffset << "\n"; // Print the size of the record
                         cout << "\n"; // Move to the next line after printing each record
                     }
+                    cout << "printPageContentsByOffset end" << endl;
                 }
                 
                 bool addRecord(const Record& record) {
+                    cout << "addRecord begin" << endl;
                     auto recordString = record.toString();
                     size_t recordSize = recordString.size();
                     
@@ -293,6 +314,7 @@ class StorageBufferManager {
                         std::cerr << "Error: Attempt to exceed predefined max size of data vector.\n";
                         return false;
                     }
+                    cout << "addRecord end" << endl;
                 }
             }; // End of Page definition
                 
@@ -305,12 +327,15 @@ class StorageBufferManager {
             // Constructor for the PageList class
             // Head is initialized as page 0 and linked list created from it
             PageList() {
+                cout << "PageList constructor begin" << endl;
                 head = initializePageList();
+                cout << "PageList constructor end" << endl;
             }
 
             // Create 'maxPages' number of pages and link them together
             // Initialization of head member attirbutes done in head constructor
             Page* initializePageList() {
+                cout << "initializePageList begin" << endl;
                 Page *tail = nullptr;
                 for (int i = 0; i < maxPages; ++i) {
                     Page *newPage = new Page(i); // Create a new page
@@ -321,21 +346,25 @@ class StorageBufferManager {
                     }
                     tail = newPage; // Update the tail to the new page
                 }
+                cout << "initializePageList end" << endl;
                 return head; // Return the head of the list
             };
 
               // Destructor for the PageList class
             ~PageList() {
+                cout << "PageList destructor begin" << endl;
                 Page* current = head;
                 while (current != nullptr) {
                     Page* temp = current->getNextPage(); // Assuming nextPage points to the next Page in the list
                     delete current; // Free the memory of the current Page
                     current = temp; // Move to the next Page
                 };
+                cout << "PageList destructor end" << endl;
             };
 
             // Method to dump the data of this page and all subsequent pages to a file
             bool dumpPages(const std::string& filename, int pagesWrittenToFile) {
+                cout << "dumpPages begin" << endl;
                 cout << "Dumping pages to file...\n";
                 cout << "IMPLEMENTATION PENDING\n";
                 Page *currentPage = head; // Start with the current page
@@ -349,6 +378,7 @@ class StorageBufferManager {
                     currentPage->resetPage(); // Reset the page vectors and header
                     currentPage = currentPage->getNextPage(); // Move to the next page
                     }
+                    cout << "dumpPages end" << endl;
                 };
             
 
@@ -356,6 +386,7 @@ class StorageBufferManager {
             Test function: Use to confirm page is being filled properly. 
             */
             void printMainMemory() {
+                cout << "Printing main memory contents...\n";
                 Page* page = head;
                 while (page != nullptr) {
                     // Print the page number as a header for each page's content
@@ -365,6 +396,7 @@ class StorageBufferManager {
                     // Move to the next page in the list
                     page = page->getNextPage();
                 }
+                cout << "End of main memory contents.\n";
             }
 
         }; // End of PageList definition
@@ -387,6 +419,7 @@ class StorageBufferManager {
         };
 
         FILE * initializeDataFile(string filename) {
+            cout << "initializeDataFile begin" << endl;
             FILE * dataFile;
             dataFile = fopen(filename.c_str(), "w");
             if (dataFile == NULL) {
@@ -399,12 +432,13 @@ class StorageBufferManager {
         Create page directory at end of page. Use maxPagesOnDisk to determine how many pages to reserve for directory.
         What else?
         */
-        
+        cout << "initializeDataFile end" << endl;
             return dataFile;
         }
 
         // Create record from csv line
         Record createRecord(string line) {
+            cout << "createRecord begin" << endl;
             // Split line into fields
             vector<string> fields;
             stringstream ss(line);
@@ -412,6 +446,7 @@ class StorageBufferManager {
             while (getline(ss, field, ',')) {
                 fields.push_back(field);
             }
+            cout << "createRecord end" << endl;
             return Record(fields);
         };
 
@@ -425,6 +460,7 @@ class StorageBufferManager {
         
         // Read csv file (Employee.csv) and add records to the (EmployeeRelation)
         void createFromFile(string csvFName) {
+            cout << "CreateFromFile: Begin createFromFile...\n";
 
             // initialize variables
             // Offset of record
@@ -450,11 +486,15 @@ class StorageBufferManager {
 
             // Loop through records
             if (fileStream.is_open()) {
+                cout << "CreateFromFile: File opened...\n";
                 // Get each record as a line
                 Page * currentPage = pageList->head;
                 while (getline(fileStream, line)) {
+                    cout << "CreateFromFile: Reading line from file...\n";
                     // Create record from line 
                     Record record = createRecord(line);
+                    cout << "CreateFromFile: Record created from line...\nTest print: \n";
+                    record.print();
                     // Get the size of the record
                     recordSize = record.recordSize();
 
@@ -471,12 +511,14 @@ class StorageBufferManager {
 
                     // While current page full and page not last page
                     while (spaceRemaining < recordSize && currentPage->getPageNumber() < maxPages - 1) {
+                        cout << "CreateFromFile: Page full. Moving to next page...\n";
                         // Advance to next page
                         currentPage = currentPage->goToNextPage();
                     }
                     // Main memory full: no room for record on any pages
                     // Write contents to file, then 
                     if (spaceRemaining < recordSize && currentPage->getPageNumber() == maxPages - 1) {
+                        cout << "CreateFromFile: Main memory full. Test printing contents...\n";
                         pageList->printMainMemory();
                         // Write page to file
                         //dumpFlag = dumpPages(EmployeeRelation, pagesWrittenToFile);
@@ -490,7 +532,9 @@ class StorageBufferManager {
                     // If returns false, some kind of logic error to resolve
                     else {
                         // Add record to page
+                        cout << "CreateFromFile: Adding record to page...\n";
                         addFlag = currentPage->addRecord(record);
+                        cout << "CreateFromFile: Record added to page?\n";
                         if (addFlag == false) {
                             cerr << "Size mismatch. Terminating..." << endl;
                             exit(-1);
@@ -500,6 +544,7 @@ class StorageBufferManager {
 
                 // After getline finishes, if page is not empty, write to file
                 if (!currentPage->checkDataEmpty()) {
+                    cout << "CreateFromFile: Test printing last page...\n";
                     pageList->printMainMemory();
                     /*
                     dumpFlag = dumpPages(EmployeeRelation);
