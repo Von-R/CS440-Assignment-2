@@ -197,7 +197,7 @@ class StorageBufferManager {
 
     public:
         struct PageHeader {
-            int recordsInPage = 0;
+            int recordsInPage; // Number of records in the page
             int spaceRemaining; // Updated to be initialized later in Page constructor
 
             PageHeader() : recordsInPage(0) {} // Constructor simplified
@@ -207,21 +207,26 @@ class StorageBufferManager {
         Page(int pageNum) : pageNumber(pageNum), nextPage(nullptr) {
             cout << "Page constructor begin" << endl;
 
-            // Initialize the page with the given page number
+            // Initialize the offsetArray to its maximum potential size first; sentinel value is -1
             offsetArray = get<0>(initializationResults); // Instance-specific offsetArray is initialized with 0's
+            cout << "Value of offsetArray[0]: " << offsetArray[0] << endl;
 
             
-
-            // Initialize pageHeader's spaceRemaining here, after data and offsetArray sizes are known
-            // For simplicity, let's assume offsetArraySize is calculated elsewhere or passed in
-            // as part of initializationResults, and similarly with dataVectorSize if needed
+            // size of offset array, 2nd element of tuple returned by initializeValues
             offsetArraySize = get<1>(initializationResults); // Update this based on actual logic
+            cout << "Value of offsetArraySize: " << offsetArraySize << endl;
 
+            // Size of data vector; calculated based on the size of the offset array and the size of the page header
             dataVectorSize = page_size - offsetArraySize - sizeof(PageHeader);
+            cout << "Value of dataVectorSize: " << dataVectorSize << endl;
             // Initialize data vector to its maximum potential size first; sentinel value is -1
             data.resize(dataVectorSize, sentinelValue);
+            cout << "Value of data[0]: " << data[0] << endl;
+            cout << "Size of resized data vector: " << data.size() << endl;
             // Initialize space remaining in the page
-            pageHeader.spaceRemaining = dataVectorSize - dataSize(data, sentinelValue);
+            pageHeader.spaceRemaining = dataVectorSize;
+            cout << "Value of spaceRemaining: " << pageHeader.spaceRemaining << endl;
+            cout << "Ensure all members are initialized correctly\n";
             cout << "Page constructor end" << endl;
         }
 
