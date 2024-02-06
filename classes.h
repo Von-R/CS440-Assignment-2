@@ -496,7 +496,7 @@ class StorageBufferManager {
 
             // Loop through records
             if (fileStream.is_open()) {
-                cout << "CreateFromFile: File opened...\n";
+                cout << "CreateFromFile: File opened...\n\n\n";
                 // Get each record as a line
                 Page * currentPage = pageList->head;
                 while (getline(fileStream, line)) {
@@ -505,23 +505,27 @@ class StorageBufferManager {
                     Record record = createRecord(line);
                     cout << "CreateFromFile: Record created from line...\nTest print: \n";
                     record.print();
+                    
                     // Get the size of the record
                     recordSize = record.recordSize();
+                    cout << "CreateFromFile: Record size: " << recordSize << endl;
 
                     // Error check that record size is less than block size
                     if (recordSize > currentPage->getDataVectorSize()) {
                         cerr << "Record size exceeds block size.\n";
                         exit(1);
                     }
+                    cout << "CreateFromFile: Record size is less than size of currPage dataVector...\n";
                     
                     // determine if there's enough room on current page:
                         // if not and not last page, begin writing to next page
                         // if not and last page, write page to file and empty page
                     spaceRemaining = currentPage->calcSpaceRemaining();
+                    cout << "CreateFromFile: Space remaining on current page: " << spaceRemaining << endl;
 
                     // While current page full and page not last page
                     while (spaceRemaining < recordSize && currentPage->getPageNumber() < maxPages - 1) {
-                        cout << "CreateFromFile: Page full. Moving to next page...\n";
+                        cout << "CreateFromFile: Page " << currentPage->getPageNumber() << " full. Moving to next page...\n";
                         // Advance to next page
                         currentPage = currentPage->goToNextPage();
                     }
