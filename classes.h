@@ -576,6 +576,7 @@ class StorageBufferManager {
                     // While current page full and page not last page
                     while (spaceRemaining < recordSize && currentPage->getPageNumber() < maxPages - 1) {
                         cout << "CreateFromFile: Page " << currentPage->getPageNumber() << " full. Moving to next page...\n";
+                        cout << "verify: \nSpace Remaining: " << spaceRemaining << " < Record Size: " << recordSize << endl;
                         // Advance to next page
                         currentPage = currentPage->goToNextPage();
                     }
