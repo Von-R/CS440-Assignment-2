@@ -242,9 +242,9 @@ class StorageBufferManager {
 
         int calcSpaceRemaining() {
             cout << "calcSpaceRemaining entered:" << endl;
-            // Calculate the space remaining based on current usage
-            int newSpaceRemaining = page_size - dataSize(data, sentinelValue) - offsetSize(offsetArray);
-            cout << "calcSpaceRemainin::newSpaceRemaining: " << newSpaceRemaining << endl;
+            // Calculate the space remaining based on current usage. PageHeader, page_size and offsetArraySize are all static members/fixed
+            int newSpaceRemaining = page_size - dataSize(data, sentinelValue) - offsetArraySize - sizeof(PageHeader);
+            cout << "calcSpaceRemaining::newSpaceRemaining: " << newSpaceRemaining << endl;
             return newSpaceRemaining;
         }
 
