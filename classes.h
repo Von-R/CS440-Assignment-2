@@ -172,7 +172,7 @@ class StorageBufferManager {
             int pageNumber; // Identifier for the page
             Page *nextPage; // Pointer to the next page in the list
             vector<char> data; // Vector to store the data in the page
-            vector<int> static offsetArray; // Vector to store the offsets of the records in the page
+            vector<int> offsetArray; // Vector to store the offsets of the records in the page
             unsigned long long static dataVectorSize;
             unsigned long long static offsetArraySize;
 
