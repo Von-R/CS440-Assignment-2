@@ -74,7 +74,7 @@ class StorageBufferManager {
         int pagesWrittenToFile = 0; // number of pages written to file. Track so that written pages are indexed by page number.
         tuple<std::vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializationResults;
         int static maxPagesOnDisk;
-        int pagesWrittenToFile = 0;
+    
 
 
         StorageBufferManager(string NewFileName) { 
@@ -476,9 +476,9 @@ class StorageBufferManager {
 
         };
 
-        fstream initializeDataFile(const string& filename) {
+        void initializeDataFile(const string& filename, fstream & EmployeeRelation, int maxPagesOnDisk) {
             cout << "initializeDataFile begin" << endl;
-            fstream EmployeeRelation;
+            
             EmployeeRelation.open(filename, ios::in | ios::out | ios::binary | ios::trunc);
             if (!EmployeeRelation.is_open()) {
                 cerr << "Error: Unable to open file for writing.\n";
@@ -537,11 +537,12 @@ class StorageBufferManager {
             
             // Open source file for reading source csv
             ifstream fileStream(csvFName.c_str());
-            EmployeeRelation = initializeDataFile("EmployeeRelation.dat");
-            
 
+            // Bootstrap data file: create file and initialize
+            initializeDataFile("EmployeeRelation.dat", EmployeeRelation, maxPagesOnDisk);
+            
             // Buffer for reading line from csv: equal to max possible record size plus 1
-            char buffer[2* 8 + 200 + 500 + 1];
+            char buffer[2 * 8 + 200 + 500 + 1];
 
             // Loop through records
             if (fileStream.is_open()) {
