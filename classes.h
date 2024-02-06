@@ -40,7 +40,8 @@ public:
     
 };
 
-// Use to reconstruct records from stringified records on file
+// Reconstruct fields vector from stringified records on file
+// Used to reconstruct records from file
 vector<string> stringToVector(const string& recordString) {
         vector<string> result;
         stringstream ss(recordString);
@@ -297,23 +298,9 @@ class StorageBufferManager {
                     return this->nextPage;
                 }
 
-                /*
-                // Method to dump (write) the current page's data to a file
-                void dumpPage(const std::string& filename) {
-                    std::ofstream outFile(filename, std::ios::app); // Open the file in append mode
-                    if (outFile.is_open()) {
-                        // Write the data from the page to the file
-                        outFile.write(data.data(), offset);
-                        outFile.close(); // Close the file
-                    } else {
-                        std::cerr << "Unable to open file for writing.\n"; // Error handling
-                    }
-                } */
-                }; // End of Page definition
+            }; // End of Page definition
                 
                 
-                
-
         // Contains linked list of pages and necessary functions
         class PageList {
             public:
@@ -440,7 +427,14 @@ class StorageBufferManager {
                 fields.push_back(field);
             }
             return Record(fields);
-        }
+        };
+
+          void exitProgram(ofstream &EmpStream) {
+            if (EmpStream.is_open()) {
+                EmpStream.close();
+            }
+            
+        };
 
         
         // Read csv file (Employee.csv) and add records to the (EmployeeRelation)
@@ -497,12 +491,13 @@ class StorageBufferManager {
                     // Main memory full: no room for record on any pages
                     // Write contents to file, then 
                     if (spaceRemaining < recordSize && currentPage->getPageNumber() == maxPages - 1) {
+                        pageList->printMainMemory();
                         // Write page to file
-                        dumpFlag = dumpPages(EmployeeRelation, pagesWrittenToFile);
-                        if (dumpFlag == false) {
-                            cerr << "Failure to copy main memory contents to file. Terminating..." << endl;
-                            exit(-1);
-                        }
+                        //dumpFlag = dumpPages(EmployeeRelation, pagesWrittenToFile);
+                        //if (dumpFlag == false) {
+                        //    cerr << "Failure to copy main memory contents to file. Terminating..." << endl;
+                        //    exit(-1);
+                        //}
                         currentPage = pageList->head;
                     }
                     // There's room on the current page. Add record
@@ -510,18 +505,22 @@ class StorageBufferManager {
                     else {
                         // Add record to page
                         addFlag = currentPage->addRecord(record);
-
-                        if (addFlag == false){
+                        if (addFlag == false) {
                             cerr << "Size mismatch. Terminating..." << endl;
                             exit(-1);
                         }
                     }            
                 }
+
+                // After getline finishes, if page is not empty, write to file
                 if (!currentPage->checkDataEmpty()) {
+                    pageList->printMainMemory();
+                    /*
                     dumpFlag = dumpPages(EmployeeRelation);
                     if (dumpFlag == false) {
                             cerr << "Failure to copy main memory contents to file. Terminating..." << endl;
                             exit(-1);
+                    */
                 }
             };
 
@@ -562,15 +561,5 @@ class StorageBufferManager {
                 
             }
         } */
-
-        void exitProgram() {
-            if (EmployeeRelation.is_open()) {
-                EmployeeRelation.close();
-            }
-            
-        };
     }; 
-        };
-};
-
-    
+};    // End of StorageBufferManager definition
