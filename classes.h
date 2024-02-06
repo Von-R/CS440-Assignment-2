@@ -337,6 +337,7 @@ class StorageBufferManager {
                         cout << "addRecord:: Adding record to page...\n";
                         std::copy(recordString.begin(), recordString.end(), data.begin() + offsetOfNextRecord);
                         pageHeader.recordsInPage += 1;
+                        cout << "addRecord:: spaceRemaining - recordSize: " << pageHeader.spaceRemaining << " - " << recordSize << " = " << pageHeader.spaceRemaining - recordSize << endl;
                         pageHeader.spaceRemaining -= recordSize;
                         offsetArray.push_back(offsetOfNextRecord);
                         return true;
