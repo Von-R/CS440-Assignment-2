@@ -195,6 +195,16 @@ class StorageBufferManager {
             cout << "dataSize end" << endl;
         }
 
+        int offsetSize(const std::vector<int>& offsetArray) {
+            cout << "offsetSize begin" << endl;
+            int count = std::count_if(offsetArray.begin(), offsetArray.end(), [](int value) {
+                return value != -1;
+            });
+            cout << "offsetSize end" << endl;
+            return count;
+        }
+
+
     public:
         struct PageHeader {
             int recordsInPage; // Number of records in the page
@@ -233,7 +243,9 @@ class StorageBufferManager {
         int calcSpaceRemaining() {
             cout << "calcSpaceRemaining entered:" << endl;
             // Calculate the space remaining based on current usage
-            return pageHeader.spaceRemaining - data.size() - (offsetArray.size() * sizeof(int));
+            int newSpaceRemaining = page_size - dataSize(data, sentinelValue) - offsetSize(offsetArray);
+            cout << "calcSpaceRemainin::newSpaceRemaining: " << newSpaceRemaining << endl;
+            return newSpaceRemaining;
         }
 
 
