@@ -584,6 +584,7 @@ class StorageBufferManager {
                             cerr << "Size mismatch on NEXT PAGE ADD. Terminating..." << endl;
                             exit(-1);
                         }
+                        continue;
                     }
                     // Main memory full: no room for record on any pages
                     // Write contents to file, then 
