@@ -327,7 +327,7 @@ class StorageBufferManager {
         // Contains linked list of pages and necessary functions
         class PageList {
             public:
-            Page *head;
+            Page *head = nullptr;
             //static const int maxPages = 3; 
             // Constructor for the PageList class
             // Head is initialized as page 0 and linked list created from it
@@ -346,6 +346,7 @@ class StorageBufferManager {
                     cout << "Creating page " << i << endl;
                     Page *newPage = new Page(i); // Create a new page
                     cout << "Page " << i << " created" << endl;
+
                     if (!head) {
                         cout << "Setting head to page " << i << endl;
                         head = newPage; // If it's the first page, set it as head
