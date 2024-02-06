@@ -579,6 +579,11 @@ class StorageBufferManager {
                         cout << "verify: \nSpace Remaining: " << spaceRemaining << " < Record Size: " << recordSize << endl;
                         // Advance to next page
                         currentPage = currentPage->goToNextPage();
+                        addFlag = currentPage->addRecord(record);
+                        if (addFlag == false) {
+                            cerr << "Size mismatch on NEXT PAGE ADD. Terminating..." << endl;
+                            exit(-1);
+                        }
                     }
                     // Main memory full: no room for record on any pages
                     // Write contents to file, then 
