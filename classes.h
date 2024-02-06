@@ -43,7 +43,7 @@ public:
 // Reconstruct fields vector from stringified records on file
 // Used to reconstruct records from file
 inline vector<string> stringToVector(const string& recordString) {
-    cout << "stringToVector begin" << endl;
+    // cout << "stringToVector begin" << endl;
         vector<string> result;
         stringstream ss(recordString);
         string item;
@@ -78,7 +78,7 @@ class StorageBufferManager {
 
 
         StorageBufferManager(string NewFileName) { 
-            cout << "StorageBufferManager constructor begin" << endl;
+            // cout << "StorageBufferManager constructor begin" << endl;
 
             //initialize your variables
             int maxPages = 3; // 3 pages in main memory at most 
@@ -92,7 +92,7 @@ class StorageBufferManager {
             */
             initializationResults = initializeValues();
             
-            cout << "StorageBufferManager constructor end" << endl;
+            // cout << "StorageBufferManager constructor end" << endl;
         };
         
 
@@ -159,7 +159,7 @@ class StorageBufferManager {
                     // Returns tuple containing offset array of size maxRecords, filled with 0's, and the size of the array
                     //         the total count of all records
                     //         the max size of record, used later to calc min number of pages needed
-                    cout << "initializeValues end" << endl;
+                    // cout << "initializeValues end" << endl;
                     return make_tuple(std::vector<int>(maxRecords, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(fileCount), 
                     static_cast<unsigned long long>(maxRecordSize));
 
@@ -180,11 +180,11 @@ class StorageBufferManager {
         //int validCount = 
         
         int dataSize(const std::vector<char>& data, char sentinelValue) {
-            cout << "dataSize begin" << endl;
+            //cout << "dataSize begin" << endl;
             return std::count_if(data.begin(), data.end(), [sentinelValue](char value) {
             return value != sentinelValue;
             });
-            cout << "dataSize end" << endl;
+            //cout << "dataSize end" << endl;
         }
 
         int offsetSize(const std::vector<int>& offsetArray) {
@@ -254,8 +254,8 @@ class StorageBufferManager {
             
 
             // Setters
-            void emptyData() {data.clear();}
-            void emptyOffsetArray() {offsetArray.clear();}
+            void emptyData() {fill(data.begin(), data.end(), sentinelValue);}
+            void emptyOffsetArray() {fill(offsetArray.begin(), offsetArray.end(), -1);}
             // Setter method to link this page to the next page
             void setNextPage(Page* nextPage) {
                 this->nextPage = nextPage;
@@ -277,7 +277,7 @@ class StorageBufferManager {
                     return;
                 }
 
-                for (size_t i = 0; i < offsetArray.size(); ++i) {
+                for (size_t i = 0; i < 20 /* offsetArray.size()*/; ++i) {
                     // Validate the current offset
                     if (offsetArray[i] < 0 || offsetArray[i] >= static_cast<int>(data.size())) {
                         cerr << "Error: Invalid offset " << offsetArray[i] << " at offsetArray index " << i << ". Skipping record.\n";
@@ -326,7 +326,7 @@ class StorageBufferManager {
                 
                 // Check if there's enough space left in the page
                 if (recordSize > static_cast<size_t>(pageHeader.spaceRemaining)) {
-                    std::cerr << "addRecord:: Not enough space in the page to add the record.\n";
+                    std::cerr << "addRecord::Error: Not enough space in the page to add the record.\n";
                     return false;
                 }
                 
