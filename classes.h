@@ -338,16 +338,6 @@ class StorageBufferManager {
                 };
             };
 
-            void printMainMemory() {
-                Page * page = head;
-                while (page->getPageNumber() < maxPages) {
-                    // Use offset array to locate beginning of record in page memory
-
-                    // Print out fields, formatted
-                    // Print out remaining space on page
-                    page = page->getNextPage();
-                }
-            }
             // Method to dump the data of this page and all subsequent pages to a file
             bool dumpPages(const std::string& filename, int pagesWrittenToFile) {
                 cout << "Dumping pages to file...\n";
