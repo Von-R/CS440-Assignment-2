@@ -213,6 +213,7 @@ class StorageBufferManager {
                 return value != -1;
             });
             //cout << "offsetSize end" << endl;
+            cout << "Elements in offset array: " << count << endl;
             return count;
         }
 
@@ -332,7 +333,7 @@ class StorageBufferManager {
 
                     // Print the offset in hexadecimal and the record's contents
                     cout << "0x" << setw(3) << setfill('0') << hex << startOffset << "\t";
-                    for (int j = startOffset; j < 30 /* endOffset */ ; ++j) {
+                    for (int j = startOffset; j < endOffset; ++j) {
                         // Ensure printing of printable characters only
                         cout << (isprint(data[j]) ? data[j] : '.');
                     }
