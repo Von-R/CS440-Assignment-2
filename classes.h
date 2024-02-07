@@ -205,7 +205,7 @@ class StorageBufferManager {
             return true;
         }
 
-        // Returns the size of the offset array by counter non-sentinel values
+        // Returns the size of the offset array by count non-sentinel values
         // Does not modify offsetArray
         int offsetSize(const std::vector<int>& offsetArray) {
             cout << "offsetSize begin" << endl;
@@ -313,7 +313,7 @@ class StorageBufferManager {
                 cout << "Space Remaining: " << pageHeader.spaceRemaining << endl;
                 cout << "Offset\t\tBeginning of record\t\tRecord Size\n";
 
-                for (size_t i = 0; i < 20 /* offsetArray.size()*/; ++i) {
+                for (size_t i = 0; i < offsetSize(offsetArray); ++i) {
                     // Validate the current offset
                     if (offsetArray[i] < 0 || offsetArray[i] >= static_cast<int>(data.size())) {
                         cerr << "Error: Invalid offset " << offsetArray[i] << " at offsetArray index " << i << ". Skipping record.\n";
@@ -332,11 +332,11 @@ class StorageBufferManager {
 
                     // Print the offset in hexadecimal and the record's contents
                     cout << "0x" << setw(3) << setfill('0') << hex << startOffset << "\t";
-                    for (int j = startOffset; j < endOffset; ++j) {
+                    for (int j = startOffset; j < 15 /* endOffset */ ; ++j) {
                         // Ensure printing of printable characters only
                         cout << (isprint(data[j]) ? data[j] : '.');
                     }
-                    cout << "\t\t" << dec << endOffset - startOffset << "\n";
+                    cout << "\t\t" << dec << endOffset - startOffset << "\n\n";
                 }
                 cout << "printPageContentsByOffset end" << endl;
             }
@@ -623,8 +623,9 @@ class StorageBufferManager {
                     cout << "CreateFromFile: Record created from line...\nTest print: \n";
                     record.print();
                     
-                    // Get the size of the record
-                    recordSize = record.recordSize();
+                    // Get the size of the stringified record
+                    // Stringified record is the data that will actually be added to memory
+                    recordSize = record.toString().size();
                     cout << "CreateFromFile: Record size: " << recordSize << endl;
 
                     // Check that record size is less than block size
