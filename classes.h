@@ -393,7 +393,7 @@ class StorageBufferManager {
                     pageHeader.recordsInPage += 1;
                     cout << "addRecord:: spaceRemaining - recordSize: " << pageHeader.spaceRemaining << " - " << recordSize << " = " << pageHeader.spaceRemaining - recordSize << endl;
                     pageHeader.spaceRemaining -= recordSize;
-                    offsetArray.push_back(offsetOfNextRecord);
+                    //offsetArray.push_back(offsetOfNextRecord);
 
                     if (addOffsetToFirstSentinel(offsetArray, offsetOfNextRecord)) {
                         cout << "addRecord:: Offset added to offsetArray\n";
