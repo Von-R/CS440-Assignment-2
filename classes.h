@@ -208,11 +208,11 @@ class StorageBufferManager {
         // Returns the size of the offset array by count non-sentinel values
         // Does not modify offsetArray
         int offsetSize(const std::vector<int>& offsetArray) {
-            cout << "offsetSize begin" << endl;
+            //cout << "offsetSize begin" << endl;
             int count = std::count_if(offsetArray.begin(), offsetArray.end(), [](int value) {
                 return value != -1;
             });
-            cout << "offsetSize end" << endl;
+            //cout << "offsetSize end" << endl;
             return count;
         }
 
@@ -332,7 +332,7 @@ class StorageBufferManager {
 
                     // Print the offset in hexadecimal and the record's contents
                     cout << "0x" << setw(3) << setfill('0') << hex << startOffset << "\t";
-                    for (int j = startOffset; j < 15 /* endOffset */ ; ++j) {
+                    for (int j = startOffset; j < 30 /* endOffset */ ; ++j) {
                         // Ensure printing of printable characters only
                         cout << (isprint(data[j]) ? data[j] : '.');
                     }
