@@ -370,7 +370,7 @@ class StorageBufferManager {
 
                     cout << "addRecord::Test: Confirm record added to page:\nPrinting stored record from main memory: \n";
                     
-                    cout << "0x" << setw(3) << setfill('0') << hex << offsetArray.back() << "\t";
+                    cout << "0x" << setw(3) << setfill('0') << hex << offsetArray.back() << "\t" << dec;
                     for (int i = offsetOfNextRecord; i < offsetOfNextRecord + recordSize; ++i) {
                         cout << data[i];
                     }
@@ -483,7 +483,7 @@ class StorageBufferManager {
                 Page* page = head;
                 while (page != nullptr) {
                     // Print the page number as a header for each page's content
-                    cout << "Printing contents of Page Number: " << page->getPageNumber() << endl;
+                    cout << "\n\nPrinting contents of Page Number: " << page->getPageNumber() << endl;
                     // Now, use the printPageContentsByOffset method to print the contents of the current page
                     page->printPageContentsByOffset();
                     // Move to the next page in the list
