@@ -344,7 +344,16 @@ class StorageBufferManager {
                     cout << "addRecord:: spaceRemaining - recordSize: " << pageHeader.spaceRemaining << " - " << recordSize << " = " << pageHeader.spaceRemaining - recordSize << endl;
                     pageHeader.spaceRemaining -= recordSize;
                     offsetArray.push_back(offsetOfNextRecord);
+
+                    cout << "addRecord:: Confirm record added to page:\nPrinting stored record from main memory: \n";
+                    
+                    cout << offsetArray.back() << endl;
+                    for (int i = offsetOfNextRecord; i < offsetOfNextRecord + recordSize; ++i) {
+                        cout << data[i];
+                    }
+
                     return true;
+
                 } else if (offsetOfNextRecord + recordSize > data.size()) {
                     std::cerr << "addRecord:: Error: Attempt to exceed predefined max size of data vector.\n";
                     cout << "addRecord failed" << endl;
