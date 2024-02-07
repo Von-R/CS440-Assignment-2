@@ -213,7 +213,7 @@ class StorageBufferManager {
                 return value != -1;
             });
             //cout << "offsetSize end" << endl;
-            cout << "Elements in offset array: " << count << endl;
+            //cout << "Elements in offset array: " << count << endl;
             return count;
         }
 
@@ -314,7 +314,9 @@ class StorageBufferManager {
                 cout << "Space Remaining: " << pageHeader.spaceRemaining << endl;
                 cout << "Offset\t\tBeginning of record\t\tRecord Size\n";
 
-                for (size_t i = 0; i < offsetSize(offsetArray); ++i) {
+                int elementsInOffsetArray = offsetSize(offsetArray);
+
+                for (size_t i = 0; i <  elementsInOffsetArray; ++i) {
                     // Validate the current offset
                     if (offsetArray[i] < 0 || offsetArray[i] >= static_cast<int>(data.size())) {
                         cerr << "Error: Invalid offset " << offsetArray[i] << " at offsetArray index " << i << ". Skipping record.\n";
