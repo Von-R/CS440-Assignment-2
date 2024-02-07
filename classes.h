@@ -177,8 +177,9 @@ class StorageBufferManager {
         vector<int> offsetArray; // Vector to store the offsets of the records in the page
         vector<char> data; // Vector to store the data in the page
 
-        //int validCount = 
         
+        // Returns the size of the data vector by counting non-sentinel values
+        // Does not modify data
         int dataSize(const std::vector<char>& data, char sentinelValue) {
             //cout << "dataSize begin" << endl;
             return std::count_if(data.begin(), data.end(), [sentinelValue](char value) {
@@ -187,6 +188,8 @@ class StorageBufferManager {
             //cout << "dataSize end" << endl;
         }
 
+        // Returns the size of the offset array by counter non-sentinel values
+        // Does not modify offsetArray
         int offsetSize(const std::vector<int>& offsetArray) {
             cout << "offsetSize begin" << endl;
             int count = std::count_if(offsetArray.begin(), offsetArray.end(), [](int value) {
@@ -254,9 +257,11 @@ class StorageBufferManager {
             
 
             // Setters
+            // Reinitialize data vector elements to sentinel value '\0'
             void emptyData() {fill(data.begin(), data.end(), sentinelValue);}
+            // Reinitialize offsetArray elements to sentinel value -1
             void emptyOffsetArray() {fill(offsetArray.begin(), offsetArray.end(), -1);}
-            // Setter method to link this page to the next page
+            // Method to link this page to the next page
             void setNextPage(Page* nextPage) {
                 this->nextPage = nextPage;
             }
@@ -321,9 +326,20 @@ class StorageBufferManager {
                 return 0;
             }
 
+            bool addOffsetToFirstSentinel(std::vector<int>& offsetArray, int newOffset) {
+                for (size_t i = 0; i < offsetArray.size(); ++i) {
+                    if (offsetArray[i] == -1) { // Sentinel value found
+                        offsetArray[i] = newOffset; // Replace with new offset
+                        return true; // Indicate success
+                    }
+                }
+                return false; // Indicate failure (no sentinel value found)
+            }
+
             
             bool addRecord(const Record& record) {
                 cout << "addRecord begin" << endl;
+                bool offsetAdd = false;
                 auto recordString = record.toString();
                 size_t recordSize = recordString.size();
                 
@@ -345,9 +361,16 @@ class StorageBufferManager {
                     pageHeader.spaceRemaining -= recordSize;
                     offsetArray.push_back(offsetOfNextRecord);
 
-                    cout << "addRecord:: Confirm record added to page:\nPrinting stored record from main memory: \n";
+                    if (addOffsetToFirstSentinel(offsetArray, offsetOfNextRecord)) {
+                        cout << "addRecord:: Offset added to offsetArray\n";
+                    } else {
+                        std::cerr << "addRecord:: Error: Unable to add offset to offsetArray.\n";
+                        return false;
+                    }
+
+                    cout << "addRecord::Test: Confirm record added to page:\nPrinting stored record from main memory: \n";
                     
-                    cout << offsetArray.back() << endl;
+                    cout << "0x" << setw(3) << setfill('0') << hex << offsetArray.back() << "\t";
                     for (int i = offsetOfNextRecord; i < offsetOfNextRecord + recordSize; ++i) {
                         cout << data[i];
                     }
