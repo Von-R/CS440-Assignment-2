@@ -177,7 +177,15 @@ class StorageBufferManager {
         vector<int> offsetArray; // Vector to store the offsets of the records in the page
         vector<char> data; // Vector to store the data in the page
 
-        
+        bool dataVectorEmpty() {
+            for (int i = 0; i < data.size(); i++) {
+                if (data[i] != sentinelValue) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         // Returns the size of the data vector by counting non-sentinel values
         // Does not modify data
         int dataSize(const std::vector<char>& data, char sentinelValue) {
@@ -186,6 +194,15 @@ class StorageBufferManager {
             return value != sentinelValue;
             });
             //cout << "dataSize end" << endl;
+        }
+
+        bool offsetArrayEmpty() {
+            for (int i = 0; i < offsetArray.size(); i++) {
+                if (offsetArray[i] != -1) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         // Returns the size of the offset array by counter non-sentinel values
@@ -271,10 +288,22 @@ class StorageBufferManager {
             // Test function to print the contents of a page as indexed by their offsets
             void printPageContentsByOffset() {
 
-                // Check if offsetArray is empty
-                if (offsetArray.empty()) {
-                    cout << "Error: Offset array is empty. No records to print.\n";
+                // Check if page is empty. If so simply return
+                if (offsetArrayEmpty() && dataVectorEmpty()) {
+                    cout << "Page is empty. No records to print.\n";
                     return;
+                }
+
+                // Error check: If offsetArray is empty but data vector is not, print error and exit
+                if ((offsetArrayEmpty() && !dataVectorEmpty()) {
+                    cerr << "Error: Offset array is empty but data vector not empty!\n";
+                    exit (-1);
+                }
+                
+                // Error check: If offsetArray is not empty but data vector is empty, print error and exit
+                (!offsetArrayEmpty() && dataVectorEmpty())) {
+                    cerr << "Error: Data vector is empty but offset array not empty!\n";
+                    exit (-1);
                 }
 
                 // Initial print statements
@@ -285,7 +314,6 @@ class StorageBufferManager {
                 cout << "Offset\t\tBeginning of record\t\tRecord Size\n";
 
                 for (size_t i = 0; i < 20 /* offsetArray.size()*/; ++i) {
-
                     // Validate the current offset
                     if (offsetArray[i] < 0 || offsetArray[i] >= static_cast<int>(data.size())) {
                         cerr << "Error: Invalid offset " << offsetArray[i] << " at offsetArray index " << i << ". Skipping record.\n";
@@ -313,7 +341,8 @@ class StorageBufferManager {
                 cout << "printPageContentsByOffset end" << endl;
             }
 
-
+            // Method to find the offset of the next record in the data vector
+            // Searches for the last non-sentinel character and returns the next position
             int findOffsetOfNextRecord(const std::vector<char>& data, char sentinelValue) {
                 // Start from the end of the vector and move backwards
                 for (int i = data.size() - 1; i >= 0; --i) {
@@ -326,6 +355,8 @@ class StorageBufferManager {
                 return 0;
             }
 
+            // Method to add an offset to the end of offsetArray
+            // Bespoke method due to array being filled with sentinel values
             bool addOffsetToFirstSentinel(std::vector<int>& offsetArray, int newOffset) {
                 for (size_t i = 0; i < offsetArray.size(); ++i) {
                     if (offsetArray[i] == -1) { // Sentinel value found
@@ -336,7 +367,7 @@ class StorageBufferManager {
                 return false; // Indicate failure (no sentinel value found)
             }
 
-            
+            // Method to add a record to the page
             bool addRecord(const Record& record) {
                 cout << "addRecord begin" << endl;
                 bool offsetAdd = false;
@@ -440,6 +471,7 @@ class StorageBufferManager {
                 cout << "PageList destructor end" << endl;
             };
 
+            // Method to reset the data and offsetArray of each page in the list to initial values
             void resetPages() {
                 cout << "resetPage begin" << endl;
                 Page * current = head;
