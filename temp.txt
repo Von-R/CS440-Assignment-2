@@ -8,3 +8,5 @@ Error remains on printPageContents of printing out -1 index elements
     Last element size of 506, with enough apparently space left in data vector hold and be below 4056 limit. 
     Calculating record size incorrectly still?
     perhaps use object size to be conservative?
+
+last record on each page is being truncated by periods, seemingly. case of last record that fits on page; specific to
