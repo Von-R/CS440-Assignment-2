@@ -265,11 +265,6 @@ class StorageBufferManager {
 
             // Test function to print the contents of a page as indexed by their offsets
             void printPageContentsByOffset() {
-                cout << "printPageContentsByOffset begin" << endl;
-                cout << "Page Number: " << pageNumber << endl;
-                cout << "Records in Page: " << pageHeader.recordsInPage << endl;
-                cout << "Space Remaining: " << pageHeader.spaceRemaining << endl;
-                cout << "Offset\t\tBeginning of record\t\tRecord Size\n";
 
                 // Check if offsetArray is empty
                 if (offsetArray.empty()) {
@@ -277,7 +272,15 @@ class StorageBufferManager {
                     return;
                 }
 
+                // Initial print statements
+                cout << "printPageContentsByOffset begin" << endl;
+                cout << "Page Number: " << pageNumber << endl;
+                cout << "Records in Page: " << pageHeader.recordsInPage << endl;
+                cout << "Space Remaining: " << pageHeader.spaceRemaining << endl;
+                cout << "Offset\t\tBeginning of record\t\tRecord Size\n";
+
                 for (size_t i = 0; i < 20 /* offsetArray.size()*/; ++i) {
+
                     // Validate the current offset
                     if (offsetArray[i] < 0 || offsetArray[i] >= static_cast<int>(data.size())) {
                         cerr << "Error: Invalid offset " << offsetArray[i] << " at offsetArray index " << i << ". Skipping record.\n";
@@ -560,12 +563,12 @@ class StorageBufferManager {
                     recordSize = record.recordSize();
                     cout << "CreateFromFile: Record size: " << recordSize << endl;
 
-                    // Error check that record size is less than block size
+                    // Check that record size is less than block size
                     if (recordSize > currentPage->getDataVectorSize()) {
                         cerr << "Record size exceeds block size.\n";
                         exit(1);
                     }
-                    cout << "CreateFromFile:: Error check passed:  Record size is less than size of currPage dataVector...\n";
+                    cout << "CreateFromFile:: Check passed:  Record size is less than size of currPage dataVector...\n";
                     
                     // determine if there's enough room on current page:
                         // if not and not last page, begin writing to next page
@@ -575,8 +578,10 @@ class StorageBufferManager {
 
                     // While current page full and page not last page
                     while (spaceRemaining < recordSize && currentPage->getPageNumber() < maxPages - 1) {
-                        cout << "CreateFromFile: Page " << currentPage->getPageNumber() << " full. Moving to next page...\n";
-                        cout << "verify: \nSpace Remaining: " << spaceRemaining << " < Record Size: " << recordSize << endl;
+                        cout << "CreateFromFile:: Current page full; not last page.\n"<<
+                        "VERIFY: Current page space Remaining: " << spaceRemaining << " < Record Size: " << recordSize << 
+                        "\nMoving from page " << currentPage->getPageNumber() << " to page " << currentPage->getPageNumber() + 1 << "\n";
+                        cout <<  endl;
                         // Advance to next page
                         currentPage = currentPage->goToNextPage();
                         addFlag = currentPage->addRecord(record);
