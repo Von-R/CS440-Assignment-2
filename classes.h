@@ -292,19 +292,19 @@ class StorageBufferManager {
                 if (offsetArrayEmpty() && dataVectorEmpty()) {
                     cout << "Page is empty. No records to print.\n";
                     return;
-                }
+                };
 
                 // Error check: If offsetArray is empty but data vector is not, print error and exit
-                if ((offsetArrayEmpty() && !dataVectorEmpty()) {
+                if (offsetArrayEmpty() && !dataVectorEmpty()) {
                     cerr << "Error: Offset array is empty but data vector not empty!\n";
                     exit (-1);
-                }
+                };
                 
                 // Error check: If offsetArray is not empty but data vector is empty, print error and exit
-                (!offsetArrayEmpty() && dataVectorEmpty())) {
+                if (!offsetArrayEmpty() && dataVectorEmpty()) {
                     cerr << "Error: Data vector is empty but offset array not empty!\n";
                     exit (-1);
-                }
+                };
 
                 // Initial print statements
                 cout << "printPageContentsByOffset begin" << endl;
