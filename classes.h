@@ -328,7 +328,7 @@ class StorageBufferManager {
 
                     // Calculate the start and end offsets for the current record
                     int startOffset = offsetArray[i];
-                    int endOffset = (i + 1 < offsetArray.size()) ? offsetArray[i + 1] : 99999999999999999 /* data.size() */;
+                    int endOffset = (i + 1 < offsetArray.size()) ? offsetArray[i + 1] : 9999 /* data.size() */;
 
                     if (endOffset == data.size()) { cout << "endOffset currently equal to data.size()" << data.size();}
 
