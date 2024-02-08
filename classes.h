@@ -211,12 +211,17 @@ class StorageBufferManager {
         // Returns the size of the offset array by count non-sentinel values
         // Does not modify offsetArray
         int offsetSize(const std::vector<int>& offsetArray) {
-            //cout << "offsetSize begin" << endl;
             int count = std::count_if(offsetArray.begin(), offsetArray.end(), [](int value) {
                 return value != -1;
             });
-            //cout << "offsetSize end" << endl;
-            //cout << "Elements in offset array: " << count << endl;
+            return count;
+        }
+
+        int dataSize(const std::vector<int>& data) {
+            int count = std::count_if(offsetArray.begin(), offsetArray.end(), [](int value) {
+                return value != sentinelValue;
+            });
+            //cout << "Elements in data array: " << count << endl;
             return count;
         }
 
@@ -322,7 +327,7 @@ class StorageBufferManager {
 
                 for (size_t i = 0; i <  elementsInOffsetArray; ++i) {
                     // Validate the current offset
-                    if (offsetArray[i] < 0 || offsetArray[i] >= static_cast<int>(data.size())) {
+                    if (offsetArray[i] < 0 || offsetArray[i] >= static_cast<int>(dataSize())) {
                         cerr << "Error: Invalid offset " << offsetArray[i] << " at offsetArray index " << i << ". Skipping record.\n";
                         continue;
                     }
@@ -331,10 +336,10 @@ class StorageBufferManager {
                     int startOffset = offsetArray[i];
                     int endOffset = (i + 1 < elementsInOffsetArray) ? offsetArray[i + 1] : 9999 /* data.size() */;
 
-                    if (endOffset == data.size()) { cout << "endOffset currently equal to data.size()" << data.size();}
+                    if (endOffset == dataSize()) { cout << "endOffset currently equal to data.size()" << dataSize();}
 
                     // Validate the end offset
-                    if (endOffset > static_cast<int>(data.size())) {
+                    if (endOffset > static_cast<int>(dataSize())) {
                         cerr << "Error: End offset " << endOffset << " exceeds data vector size. Adjusting to data size.\n";
                         endOffset = data.size();
                     }
