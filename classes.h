@@ -611,7 +611,9 @@ class StorageBufferManager {
             int offset = 0;
             // For reading line from csv
             string line;
+            // Add success
             bool addFlag = false;
+            // Dump success
             bool dumpFlag = false;
             
             int spaceRemaining;
@@ -689,6 +691,7 @@ class StorageBufferManager {
                         //}
                         
                         pageList->dumpPages(EmployeeRelation, pagesWrittenToFile);
+                        currentPage = pageList->head;
                     }
                     // There's room on the current page. Add record
                     // If returns false, some kind of logic error to resolve
@@ -705,6 +708,7 @@ class StorageBufferManager {
                 }
 
                 // After getline finishes, if page is not empty, write to file
+                // Situation: final records, don't fill entire page
                 if (!currentPage->checkDataEmpty()) {
                     cout << "CreateFromFile: Test printing last page...\n";
                     pageList->printMainMemory();
@@ -715,6 +719,7 @@ class StorageBufferManager {
                             exit(-1);
                     */
                     pageList->dumpPages(EmployeeRelation, pagesWrittenToFile);
+                    currentPage = pageList->head;
                 }
                 delete pageList;
             };
