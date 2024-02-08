@@ -330,7 +330,7 @@ class StorageBufferManager {
                     int startOffset = offsetArray[i];
                     int endOffset = (i + 1 < offsetArray.size()) ? offsetArray[i + 1] : data.size();
 
-                    if (endOffset == -1) { cout << "endOffset currently equal to " << data.size();}
+                    if (endOffset == data.size()) { cout << "endOffset currently equal to data.size()" << data.size();}
 
                     // Validate the end offset
                     if (endOffset > static_cast<int>(data.size())) {
