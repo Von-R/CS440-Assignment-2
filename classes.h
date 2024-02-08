@@ -323,7 +323,7 @@ class StorageBufferManager {
                 cout << "Offset\t\tBeginning of record\t\tRecord Size\n";
 
                 int elementsInOffsetArray = offsetSize(offsetArray);
-                cout << "elements in offset array: " << elementsInOffsetArray;
+                cout << "elements in offset array: " << elementsInOffsetArray << endl;
 
                 for (size_t i = 0; i <  elementsInOffsetArray; ++i) {
                     // Validate the current offset
@@ -336,7 +336,7 @@ class StorageBufferManager {
                     int startOffset = offsetArray[i];
                     int endOffset = (i + 1 < elementsInOffsetArray) ? offsetArray[i + 1] : dataSize(data);
 
-                    if (endOffset == dataSize(data)) { cout << "endOffset currently equal to data.size()" << dataSize(data);}
+                    if (endOffset == dataSize(data)) { cout << "endOffset currently equal to data.size()" << dataSize(data) << endl;}
 
                     // Validate the end offset
                     if (endOffset > static_cast<int>(dataSize(data))) {
@@ -405,7 +405,7 @@ class StorageBufferManager {
 
                 // Ensure the insertion does not exceed the vector's predefined max size
                 if (offsetOfNextRecord + recordSize <= data.size()) {
-                    cout << "addRecord:: Adding record to page...\n";
+                    cout << "addRecord:: Adding record to page: " << this->pageNumber << "\n";
                     std::copy(recordString.begin(), recordString.end(), data.begin() + offsetOfNextRecord);
                     pageHeader.recordsInPage += 1;
                     cout << "addRecord:: spaceRemaining - recordSize: " << pageHeader.spaceRemaining << " - " << recordSize << " = " << pageHeader.spaceRemaining - recordSize << endl;
