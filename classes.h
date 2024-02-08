@@ -217,8 +217,8 @@ class StorageBufferManager {
             return count;
         }
 
-        int dataSize(const std::vector<int>& data) {
-            int count = std::count_if(offsetArray.begin(), offsetArray.end(), [](int value) {
+        int dataSize(const std::vector<char>& data) {
+            int count = std::count_if(data.begin(), data.end(), [](int value) {
                 return value != sentinelValue;
             });
             //cout << "Elements in data array: " << count << endl;
@@ -327,21 +327,21 @@ class StorageBufferManager {
 
                 for (size_t i = 0; i <  elementsInOffsetArray; ++i) {
                     // Validate the current offset
-                    if (offsetArray[i] < 0 || offsetArray[i] >= static_cast<int>(dataSize())) {
+                    if (offsetArray[i] < 0 || offsetArray[i] >= static_cast<int>(dataSize(data))) {
                         cerr << "Error: Invalid offset " << offsetArray[i] << " at offsetArray index " << i << ". Skipping record.\n";
                         continue;
                     }
 
                     // Calculate the start and end offsets for the current record
                     int startOffset = offsetArray[i];
-                    int endOffset = (i + 1 < elementsInOffsetArray) ? offsetArray[i + 1] : 9999 /* data.size() */;
+                    int endOffset = (i + 1 < elementsInOffsetArray) ? offsetArray[i + 1] : dataSize(data);
 
-                    if (endOffset == dataSize()) { cout << "endOffset currently equal to data.size()" << dataSize();}
+                    if (endOffset == dataSize(data)) { cout << "endOffset currently equal to data.size()" << dataSize(data);}
 
                     // Validate the end offset
-                    if (endOffset > static_cast<int>(dataSize())) {
+                    if (endOffset > static_cast<int>(dataSize(data))) {
                         cerr << "Error: End offset " << endOffset << " exceeds data vector size. Adjusting to data size.\n";
-                        endOffset = data.size();
+                        endOffset = dataSize(data);
                     }
 
                     // Print the offset in hexadecimal and the record's contents
