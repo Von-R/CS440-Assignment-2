@@ -318,8 +318,9 @@ class StorageBufferManager {
                 cout << "Offset\t\tBeginning of record\t\tRecord Size\n";
 
                 int elementsInOffsetArray = offsetSize(offsetArray);
+                cout << "elements in offset array: " << elementsInOffsetArray;
 
-                for (size_t i = 0; i <  elementsInOffsetArray; ++i) {
+                for (size_t i = 0; i <  elementsInOffsetArray - 1; ++i) {
                     // Validate the current offset
                     if (offsetArray[i] < 0 || offsetArray[i] >= static_cast<int>(data.size())) {
                         cerr << "Error: Invalid offset " << offsetArray[i] << " at offsetArray index " << i << ". Skipping record.\n";
