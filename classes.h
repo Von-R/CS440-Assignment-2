@@ -344,7 +344,7 @@ class StorageBufferManager {
                     }
                     
                     cout << "\t\t" << dec << endOffset - startOffset << "\n\n";
-                    cout << "endoffset: " << endOffset << "\nstartOffset: "<< endOffset << endl;
+                    cout << "endoffset: " << endOffset << "\nstartOffset: "<< startOffset << endl;
                 }
                 cout << "printPageContentsByOffset end" << endl;
             }
