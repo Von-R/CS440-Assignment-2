@@ -342,7 +342,9 @@ class StorageBufferManager {
                         // Ensure printing of printable characters only
                         cout << (isprint(data[j]) ? data[j] : '.');
                     }
+                    
                     cout << "\t\t" << dec << endOffset - startOffset << "\n\n";
+                    cout << "endoffset: " << endOffset << "\nstartOffset: "<< endOffset << endl;
                 }
                 cout << "printPageContentsByOffset end" << endl;
             }
