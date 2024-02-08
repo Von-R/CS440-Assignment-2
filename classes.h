@@ -33,8 +33,11 @@ public:
         return sizeof(id) + sizeof(manager_id) + name.size() + bio.size();
     }
 
+    // $ marks beginning of record
+    // # marks end of field
+    // % marks end of record
     string toString() const {
-            return to_string(id) + "," + name + "," + bio + "," + to_string(manager_id) + "\n";
+            return "$ " + to_string(id) + " # " + name + " # " + bio + " # " + to_string(manager_id) + " %";
         }
 
     
@@ -48,7 +51,7 @@ inline vector<string> stringToVector(const string& recordString) {
         stringstream ss(recordString);
         string item;
 
-        while (getline(ss, item, ',')) {
+        while (getline(ss, item, '#')) {
             result.push_back(item);
         }
 
@@ -375,6 +378,10 @@ class StorageBufferManager {
                 cout << "addRecord begin" << endl;
                 bool offsetAdd = false;
                 auto recordString = record.toString();
+
+                // This should print out a properly formatted record string with not trailing periods
+                cout << "addRecord:: TEST PRINT: Record string: " << recordString << "\n";
+
                 size_t recordSize = recordString.size();
                 
                 // Check if there's enough space left in the page
