@@ -107,9 +107,7 @@ class StorageBufferManager {
             ??? the minimum number of pages required on disk file: 
 
         */
-
         struct FileHeader {
-            int firstPageDirectoryOffset;
             int totalNumberOfPages; // Total pages in the file
             int pageDirectoryOffset; // Offset where the page directory starts
             int pageDirectorySize; // Number of entries in the page directory; optional if dynamic
@@ -119,20 +117,69 @@ class StorageBufferManager {
             FileHeader() : totalNumberOfPages(0), pageDirectoryOffset(sizeof(FileHeader)), pageDirectorySize(0) {}
         };
 
-        struct PageDirectoryNode {
-            std::vector<int> pageOffsets; // Offsets of pages this directory node points to
-            int nextPageDirectoryOffset; // File offset to the next directory node, or -1 if this is the last node
-        };
-
-
         struct PageDirectoryEntry {
             int pageOffset; // Offset of the page from the beginning of the file
-            int recordsInPage; // Number of records within the page; optional, for quick access
+            int recordsInPage; // Number of records within the page
 
-            // Default constructor
-            PageDirectoryEntry() : pageOffset(0), recordsInPage(0) {}
+            // Default constructor initializes members to indicate an empty or uninitialized entry
+            PageDirectoryEntry() : pageOffset(-1), recordsInPage(0) {}
+            PageDirectoryEntry(int offset, int records) : pageOffset(offset), recordsInPage(records) {}
         };
 
+        struct PageDirectory {
+            std::vector<PageDirectoryEntry> entries; // Holds entries for each page
+            int entryCount; // Keep track of valid entries so far. Used for add indexing
+            int nextPageDirectoryOffset; // File offset to the next directory, or -1 if this is the last
+
+            // Default constructor
+            PageDirectory() : nextPageDirectoryOffset(-1), entries(100), entryCount(0) {}
+
+            // Add a new page directory entry
+            void addPageDirectoryEntry(int offset, int records) {
+                if (entryCount >= entries.size()) {
+                    cerr << "Error: Page directory is full. Cannot add new entry.\n" <<
+                    "Create and link new page directory instead.\n";
+                    return;
+                }
+                entries[entryCount].pageOffset = offset;
+                entries[entryCount].recordsInPage = records;
+                entryCount++;
+            }
+
+            // Function to serialize the PageDirectory to a file
+            void serialize(std::ofstream& file) {
+                // Write the entry count and next page directory offset first
+                file.write(reinterpret_cast<const char*>(&entryCount), sizeof(entryCount));
+                file.write(reinterpret_cast<const char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
+
+                // Then write each entry
+                for (const auto& entry : entries) {
+                    file.write(reinterpret_cast<const char*>(&entry.pageOffset), sizeof(entry.pageOffset));
+                    file.write(reinterpret_cast<const char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
+                }
+            }
+
+            // Function to deserialize the PageDirectory from a file
+            void deserialize(std::ifstream& file) {
+                // Read the entry count and next page directory offset first
+                file.read(reinterpret_cast<char*>(&entryCount), sizeof(entryCount));
+                file.read(reinterpret_cast<char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
+
+                // Resize entries vector based on entryCount
+                entries.resize(entryCount);
+
+                // Then read each entry
+                for (auto& entry : entries) {
+                    file.read(reinterpret_cast<char*>(&entry.pageOffset), sizeof(entry.pageOffset));
+                    file.read(reinterpret_cast<char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
+                }
+            }
+
+            // Function to update the next directory offset
+            void setNextPageDirectoryOffset(int offset) {
+                nextPageDirectoryOffset = offset;
+            }
+        };
 
          tuple<std::vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializeValues() {
                     cout << "initializeValues begin" << endl;
@@ -235,22 +282,7 @@ class StorageBufferManager {
             return true;
         }
 
-        // Returns the size of the offset array by count non-sentinel values
-        // Does not modify offsetArray
-        int offsetSize(const std::vector<int>& offsetArray) {
-            int count = std::count_if(offsetArray.begin(), offsetArray.end(), [](int value) {
-                return value != -1;
-            });
-            return count;
-        }
-
-        int dataSize(const std::vector<char>& data) {
-            int count = std::count_if(data.begin(), data.end(), [](int value) {
-                return value != sentinelValue;
-            });
-            //cout << "Elements in data array: " << count << endl;
-            return count;
-        }
+        
 
     public:
         struct PageHeader {
@@ -285,6 +317,23 @@ class StorageBufferManager {
             cout << "Value of spaceRemaining: " << pageHeader.spaceRemaining << endl;
             cout << "Ensure all members are initialized correctly\n";
             cout << "Page constructor end" << endl;
+        }
+
+        // Returns the size of the offset array by count non-sentinel values
+        // Does not modify offsetArray
+        int offsetSize() {
+            int count = std::count_if(offsetArray.begin(), offsetArray.end(), [](int value) {
+                return value != -1;
+            });
+            return count;
+        }
+
+        int dataSize(const std::vector<char>& data) {
+            int count = std::count_if(data.begin(), data.end(), [](int value) {
+                return value != sentinelValue;
+            });
+            //cout << "Elements in data array: " << count << endl;
+            return count;
         }
 
         int calcSpaceRemaining() {
@@ -349,7 +398,7 @@ class StorageBufferManager {
                 cout << "Space Remaining: " << pageHeader.spaceRemaining << endl;
                 cout << "Offset\t\tBeginning of record\t\tRecord Size\n";
 
-                int elementsInOffsetArray = offsetSize(offsetArray);
+                int elementsInOffsetArray = offsetSize();
                 cout << "elements in offset array: " << elementsInOffsetArray << endl;
 
                 for (size_t i = 0; i <  elementsInOffsetArray; ++i) {
@@ -466,6 +515,32 @@ class StorageBufferManager {
                 }
                 cout << "addRecord successful" << endl;
             }
+
+            // Method to write the contents of this page to a file
+            int writeRecordsToFile(std::ofstream& outputFile, int offsetSize, int pageID) {
+                if (!outputFile.is_open()) {
+                    std::cerr << "Error: Output file is not open for writing.\n";
+                    return -1; // Indicate error
+                }
+
+               
+
+                for (int i = 0; i < offsetSize - 1; ++i) { // -1 to prevent accessing beyond the last valid index
+                    int startOffset = offsetArray[i];
+                    int endOffset = offsetArray[i + 1]; // Get the end offset for the current segment
+
+                    // Write each character in the range [startOffset, endOffset) to the file
+                    for (int j = startOffset; j < endOffset; ++j) {
+                        if (data[j] != sentinelValue) {
+                            outputFile.write(reinterpret_cast<const char*>(&data[j]), sizeof(data[j]));
+                        }
+                    }
+                }
+
+                // Optionally, return the new offset after writing, if needed
+                return outputFile.tellp();
+            }
+
         }; // End of Page definition
             
                 
@@ -532,26 +607,41 @@ class StorageBufferManager {
                 cout << "resetPage end" << endl;
             }
 
-            // Method to dump the data of this page and all subsequent pages to a file
-            bool dumpPages(fstream & filename, int pagesWrittenToFile) {
-                cout << "dumpPages begin" << endl;
+            bool dumpPages(ofstream& file, int& pagesWrittenToFile) {
                 cout << "Dumping pages to file...\n";
-                cout << "IMPLEMENTATION PENDING\n";
-                Page *currentPage = head; // Start with the current page
-                while(currentPage != nullptr) {
 
-                    //currentPage->printPageContentsByOffset(); // Dump current page's data
-                    /*
-                        currentPage->pageHeader.pageNumber = pagesWrittenToFile;
-                        pagesWrittenToFile++;
-                        Write to file
-                    */
-                    
-                    currentPage = currentPage->getNextPage(); // Move to the next page
+                if (!file.is_open()) {
+                    cerr << "File is not open for writing.\n";
+                    return false;
+                }
+
+                Page* currentPage = head;
+                int pageOffset = 0;
+                while (currentPage != nullptr) {
+                    // Assume currentPage->writeRecordsToFile() handles serialization of page data
+                    if (!currentPage->writeRecordsToFile(file, currentPage->offsetSize(), currentPage->getPageNumber() {
+                        cerr << "Failed to write page records to file.\n";
+                        return false;
                     }
-                    resetPages();
-                    cout << "dumpPages end" << endl;
-                };
+
+                    // Update the page directory with new entry
+                    int currentPageOffset = /* Calculate current page offset in the file */;
+                    int currentPageRecordCount = currentPage->getRecordCount();
+                    // Add the new directory entry
+                    // Assuming you have a method to handle adding and serializing the page directory entry
+                    addPageDirectoryEntry(currentPageOffset, currentPageRecordCount);
+
+                    pagesWrittenToFile++;
+                    currentPage = currentPage->getNextPage();
+                }
+
+                // Serialize and write the updated page directory and file header here
+                // Reset the pages for reuse
+                resetPages();
+                cout << "Page dumping complete.\n";
+                return true;
+            }
+
             
 
             /*
@@ -591,8 +681,10 @@ class StorageBufferManager {
         };
 
         void initializeDataFile(const std::string& filename) {
+            // Clear file
             std::ofstream file(filename, std::ios::binary | std::ios::out | std::ios::trunc);
 
+            // Error check: If file cannot be opened, print error and exit
             if (!file.is_open()) {
                 std::cerr << "Unable to open file for initialization: " << filename << std::endl;
                 return;
@@ -600,13 +692,10 @@ class StorageBufferManager {
 
             // Write an empty file header
             FileHeader header;
+            PageDirectory pageDirectory;
+            header.pageDirectoryOffset = sizeof(header);
             file.write(reinterpret_cast<const char*>(&header), sizeof(header));
-
-            // Optionally pre-allocate page directory entries if using a fixed size
-            PageDirectoryEntry emptyEntry;
-            for (int i = 0; i < MAX_DIRECTORY_ENTRIES; ++i) {
-                file.write(reinterpret_cast<const char*>(&emptyEntry), sizeof(emptyEntry));
-            }
+            file.write(reinterpret_cast<const char*>(&pageDirectory), sizeof(pageDirectory));
 
             file.close();
         }
@@ -627,21 +716,7 @@ class StorageBufferManager {
             return Record(fields);
         };
 
-        void writeRecordsToFile(const std::string& filePath) {
-            std::ofstream outputFile(filePath, std::ios::binary | std::ios::out);
-            if (!outputFile) {
-                std::cerr << "Error opening file for writing.\n";
-                return;
-            }
-
-            // Assuming you have a way to iterate over records in memory
-            for (const auto& record : records) {
-                std::string recordStr = recordToString(record); // Serialize record to string
-                outputFile << recordStr << "\n"; // Delimiter for end of record
-            }
-
-            outputFile.close();
-        }
+        
 
 
         void exitProgram(ofstream &EmpStream) {
@@ -779,8 +854,7 @@ class StorageBufferManager {
             cout << endl;
         };
 
-        #include <fstream>
-
+        /*
         void printStructuredFileContents(const std::string& filePath) {
             std::ifstream file(filePath, std::ios::binary);
             if (!file) {
@@ -823,7 +897,7 @@ class StorageBufferManager {
             }
 
             file.close();
-        }
+        } */
 
 
 
