@@ -37,7 +37,7 @@ public:
     // # marks end of field
     // % marks end of record
     string toString() const {
-            return "$ " + to_string(id) + " # " + name + " # " + bio + " # " + to_string(manager_id) + " %";
+            return "$" + to_string(id) + "#" + name + "#" + bio + "#" + to_string(manager_id) + "%";
         }
 
     
@@ -107,6 +107,33 @@ class StorageBufferManager {
             ??? the minimum number of pages required on disk file: 
 
         */
+
+        struct FileHeader {
+            int firstPageDirectoryOffset;
+            int totalNumberOfPages; // Total pages in the file
+            int pageDirectoryOffset; // Offset where the page directory starts
+            int pageDirectorySize; // Number of entries in the page directory; optional if dynamic
+            // Additional metadata as needed, such as record schema information
+
+            // Default constructor
+            FileHeader() : totalNumberOfPages(0), pageDirectoryOffset(sizeof(FileHeader)), pageDirectorySize(0) {}
+        };
+
+        struct PageDirectoryNode {
+            std::vector<int> pageOffsets; // Offsets of pages this directory node points to
+            int nextPageDirectoryOffset; // File offset to the next directory node, or -1 if this is the last node
+        };
+
+
+        struct PageDirectoryEntry {
+            int pageOffset; // Offset of the page from the beginning of the file
+            int recordsInPage; // Number of records within the page; optional, for quick access
+
+            // Default constructor
+            PageDirectoryEntry() : pageOffset(0), recordsInPage(0) {}
+        };
+
+
          tuple<std::vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializeValues() {
                     cout << "initializeValues begin" << endl;
 
@@ -336,7 +363,7 @@ class StorageBufferManager {
                     int startOffset = offsetArray[i];
                     int endOffset = (i + 1 < elementsInOffsetArray) ? offsetArray[i + 1] : dataSize(data);
 
-                    if (endOffset == dataSize(data)) { cout << "endOffset currently equal to data.size()" << dataSize(data) << endl;}
+                    if (endOffset == dataSize(data)) { cout << "endOffset currently equal to dataSize(data)" << dataSize(data) << endl;}
 
                     // Validate the end offset
                     if (endOffset > static_cast<int>(dataSize(data))) {
@@ -563,23 +590,28 @@ class StorageBufferManager {
 
         };
 
-        void initializeDataFile(const string& filename, fstream & EmployeeRelation, int maxPagesOnDisk) {
-            cout << "initializeDataFile begin" << endl;
-            
-            EmployeeRelation.open(filename, ios::in | ios::out | ios::binary | ios::trunc);
-            if (!EmployeeRelation.is_open()) {
-                cerr << "Error: Unable to open file for writing.\n";
-                exit(1);
+        void initializeDataFile(const std::string& filename) {
+            std::ofstream file(filename, std::ios::binary | std::ios::out | std::ios::trunc);
+
+            if (!file.is_open()) {
+                std::cerr << "Unable to open file for initialization: " << filename << std::endl;
+                return;
             }
 
-            /*
-            TODO:
-            Create page directory at end of page. Use maxPagesOnDisk to determine how many pages to reserve for directory.
-            What else?
-            */
+            // Write an empty file header
+            FileHeader header;
+            file.write(reinterpret_cast<const char*>(&header), sizeof(header));
 
-            cout << "initializeDataFile end" << endl;
+            // Optionally pre-allocate page directory entries if using a fixed size
+            PageDirectoryEntry emptyEntry;
+            for (int i = 0; i < MAX_DIRECTORY_ENTRIES; ++i) {
+                file.write(reinterpret_cast<const char*>(&emptyEntry), sizeof(emptyEntry));
+            }
+
+            file.close();
         }
+
+
 
         // Create record from csv line
         Record createRecord(string line) {
@@ -594,6 +626,23 @@ class StorageBufferManager {
             cout << "createRecord end" << endl;
             return Record(fields);
         };
+
+        void writeRecordsToFile(const std::string& filePath) {
+            std::ofstream outputFile(filePath, std::ios::binary | std::ios::out);
+            if (!outputFile) {
+                std::cerr << "Error opening file for writing.\n";
+                return;
+            }
+
+            // Assuming you have a way to iterate over records in memory
+            for (const auto& record : records) {
+                std::string recordStr = recordToString(record); // Serialize record to string
+                outputFile << recordStr << "\n"; // Delimiter for end of record
+            }
+
+            outputFile.close();
+        }
+
 
         void exitProgram(ofstream &EmpStream) {
             if (EmpStream.is_open()) {
@@ -723,6 +772,83 @@ class StorageBufferManager {
                 }
                 delete pageList;
             };
+
+        Record stringToRecord(const std::string& recordStr) {
+            // Split the recordStr by field delimiters and construct a Record object
+            // Example implementation detail depends on the exact format
+            cout << endl;
+        };
+
+        #include <fstream>
+
+        void printStructuredFileContents(const std::string& filePath) {
+            std::ifstream file(filePath, std::ios::binary);
+            if (!file) {
+                std::cerr << "Cannot open file: " << filePath << std::endl;
+                return;
+            }
+
+            // Assuming the file starts with the size of the page directory (e.g., an integer)
+            int pageDirectorySize;
+            file.read(reinterpret_cast<char*>(&pageDirectorySize), sizeof(pageDirectorySize));
+
+            // Read the page directory to get page offsets
+            std::vector<int> pageOffsets(pageDirectorySize);
+            file.read(reinterpret_cast<char*>(pageOffsets.data()), pageDirectorySize * sizeof(int));
+
+            // Iterate over each page using the offsets
+            for (int pageOffset : pageOffsets) {
+                file.seekg(pageOffset, std::ios::beg);
+
+                // Read page metadata here (e.g., number of records in the page)
+                // For simplicity, let's assume we just start reading records
+
+                // Example: read the size of the record vector for the page
+                int recordVectorSize;
+                file.read(reinterpret_cast<char*>(&recordVectorSize), sizeof(recordVectorSize));
+
+                std::vector<int> recordOffsets(recordVectorSize);
+                file.read(reinterpret_cast<char*>(recordOffsets.data()), recordVectorSize * sizeof(int));
+
+                // Now print each record by seeking to its offset within the page
+                for (int recordOffset : recordOffsets) {
+                    // Seek to the record's position within the current page
+                    file.seekg(pageOffset + recordOffset, std::ios::beg);
+
+                    // Assuming records are terminated by a newline character for simplicity
+                    std::string record;
+                    std::getline(file, record);
+                    std::cout << record << std::endl;
+                }
+            }
+
+            file.close();
+        }
+
+
+
+        std::vector<Record> readRecordsFromFileAndSearchByID(const std::string& filePath, int searchID) {
+            std::ifstream inputFile(filePath, std::ios::binary | std::ios::in);
+            std::vector<Record> matchingRecords;
+            if (!inputFile) {
+                std::cerr << "Error opening file for reading.\n";
+                return matchingRecords;
+            }
+
+            std::string line;
+            while (std::getline(inputFile, line)) {
+                if (line.empty()) continue; // Skip empty lines or end of file markers
+                
+                Record record = stringToRecord(line); // Deserialize string to record
+                if (record.id == searchID) {
+                    matchingRecords.push_back(record);
+                }
+            }
+
+            inputFile.close();
+            return matchingRecords;
+        };
+
 
             /*
             int getRecordCount(string filename) {
