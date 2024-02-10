@@ -253,6 +253,7 @@ class StorageBufferManager {
         static const char sentinelValue = '\0'; // Sentinel value to indicate empty space in the data vector
         vector<int> offsetArray; // Vector to store the offsets of the records in the page
         vector<char> data; // Vector to store the data in the page
+        int recordCount = 0; // Number of records in the page
 
         bool dataVectorEmpty() {
             for (int i = 0; i < data.size(); i++) {
@@ -356,6 +357,7 @@ class StorageBufferManager {
             Page * goToNextPage() {
                 return this->nextPage;
             }
+            int getRecordCount() {return recordCount;}
             
 
             // Setters
@@ -367,6 +369,7 @@ class StorageBufferManager {
             void setNextPage(Page* nextPage) {
                 this->nextPage = nextPage;
             }
+            void incrementRecordCount() {recordCount++;}
 
             
 
@@ -462,7 +465,7 @@ class StorageBufferManager {
             // Method to add a record to the page
             bool addRecord(const Record& record) {
                 cout << "addRecord begin" << endl;
-                bool offsetAdd = false;
+
                 auto recordString = record.toString();
 
                 // This should print out a properly formatted record string with not trailing periods
@@ -513,11 +516,12 @@ class StorageBufferManager {
                     cout << "addRecord failed" << endl;
                     return false;
                 }
+                incrementRecordCount();
                 cout << "addRecord successful" << endl;
             }
 
             // Method to write the contents of this page to a file
-            int writeRecordsToFile(std::ofstream& outputFile, int offsetSize, int pageID) {
+            int writeRecordsToFile(std::ofstream& outputFile, int offsetSize) {
                 if (!outputFile.is_open()) {
                     std::cerr << "Error: Output file is not open for writing.\n";
                     return -1; // Indicate error
@@ -607,7 +611,7 @@ class StorageBufferManager {
                 cout << "resetPage end" << endl;
             }
 
-            bool dumpPages(ofstream& file, int& pagesWrittenToFile) {
+            bool dumpPages(ofstream& file, int& pagesWrittenToFile, FileHeader* header, PageDirectory* pageDirectory) {
                 cout << "Dumping pages to file...\n";
 
                 if (!file.is_open()) {
@@ -618,18 +622,21 @@ class StorageBufferManager {
                 Page* currentPage = head;
                 int pageOffset = 0;
                 while (currentPage != nullptr) {
-                    // Assume currentPage->writeRecordsToFile() handles serialization of page data
-                    if (!currentPage->writeRecordsToFile(file, currentPage->offsetSize(), currentPage->getPageNumber() {
+                    // Write page contents to file, get offset pointing to 
+                    pageOffset = currentPage->writeRecordsToFile(file, currentPage->offsetSize());
+                    
+                    // Error check: If pageOffset is negative stream failed to open: print error and return false
+                    if (pageOffset < 0){
                         cerr << "Failed to write page records to file.\n";
                         return false;
                     }
 
                     // Update the page directory with new entry
-                    int currentPageOffset = /* Calculate current page offset in the file */;
+                    
                     int currentPageRecordCount = currentPage->getRecordCount();
                     // Add the new directory entry
                     // Assuming you have a method to handle adding and serializing the page directory entry
-                    addPageDirectoryEntry(currentPageOffset, currentPageRecordCount);
+                    pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount);
 
                     pagesWrittenToFile++;
                     currentPage = currentPage->getNextPage();
@@ -680,7 +687,7 @@ class StorageBufferManager {
 
         };
 
-        void initializeDataFile(const std::string& filename) {
+        ofstream initializeDataFile(const std::string& filename, FileHeader* header, PageDirectory* pageDirectory) {
             // Clear file
             std::ofstream file(filename, std::ios::binary | std::ios::out | std::ios::trunc);
 
@@ -691,13 +698,10 @@ class StorageBufferManager {
             }
 
             // Write an empty file header
-            FileHeader header;
-            PageDirectory pageDirectory;
-            header.pageDirectoryOffset = sizeof(header);
+            header->pageDirectoryOffset = sizeof(header);
             file.write(reinterpret_cast<const char*>(&header), sizeof(header));
             file.write(reinterpret_cast<const char*>(&pageDirectory), sizeof(pageDirectory));
-
-            file.close();
+            return file;
         }
 
 
@@ -730,6 +734,9 @@ class StorageBufferManager {
         void createFromFile(string csvFName) {
             cout << "CreateFromFile: Begin createFromFile...\n";
 
+            FileHeader * header = new FileHeader();
+            PageDirectory * pageDirectory = new PageDirectory();
+
             // initialize variables
             // Offset of record
             int offset = 0;
@@ -752,7 +759,7 @@ class StorageBufferManager {
             ifstream fileStream(csvFName.c_str());
 
             // Bootstrap data file: create file and initialize
-            initializeDataFile("EmployeeRelation.dat", EmployeeRelation, maxPagesOnDisk);
+            ofstream EmployeeRelation = initializeDataFile("EmployeeRelation.dat", header, pageDirectory);
             
             // Buffer for reading line from csv: equal to max possible record size plus 1
             char buffer[2 * 8 + 200 + 500 + 1];
@@ -789,16 +796,20 @@ class StorageBufferManager {
 
                     // While current page full and page not last page
                     while (spaceRemaining < recordSize && currentPage->getPageNumber() < maxPages - 1) {
+
+                        // Diagnostic print
                         cout << "CreateFromFile:: Current page full; not last page.\n"<<
                         "VERIFY: Current page space Remaining: " << spaceRemaining << " < Record Size: " << recordSize << 
                         "\nMoving from page " << currentPage->getPageNumber() << " to page " << currentPage->getPageNumber() + 1 << "\n";
                         cout <<  endl;
+
                         // Advance to next page
                         currentPage = currentPage->goToNextPage();
-                        addFlag = currentPage->addRecord(record);
+                        // Recalculate space remaining on new page
                         spaceRemaining = currentPage->calcSpaceRemaining();
-                        if (addFlag == false) {
-                            cerr << "Size mismatch on NEXT PAGE ADD. Terminating..." << endl;
+                        // Add record to new page
+                        if (!currentPage->addRecord(record)) {
+                            cerr << "Error: Size mismatch on NEXT PAGE ADD. Terminating..." << endl;
                             exit(-1);
                         }
                     }
@@ -807,14 +818,11 @@ class StorageBufferManager {
                     if (spaceRemaining < recordSize && currentPage->getPageNumber() == maxPages - 1) {
                         cout << "CreateFromFile: Main memory full. Test printing contents...\n";
                         pageList->printMainMemory();
-                        // Write page to file
-                        //dumpFlag = dumpPages(EmployeeRelation, pagesWrittenToFile);
-                        //if (dumpFlag == false) {
-                        //    cerr << "Failure to copy main memory contents to file. Terminating..." << endl;
-                        //    exit(-1);
-                        //}
                         
-                        pageList->dumpPages(EmployeeRelation, pagesWrittenToFile);
+                        if (!pageList->dumpPages(EmployeeRelation, pagesWrittenToFile, header, pageDirectory)) {
+                            cerr << "Error: Failure to copy main memory contents to file. Stream not open." << endl;
+                            exit(-1);
+                        }
                         currentPage = pageList->head;
                     }
                     // There's room on the current page. Add record
@@ -822,37 +830,41 @@ class StorageBufferManager {
                     else {
                         // Add record to page
                         cout << "CreateFromFile: Adding record to page...\n";
-                        addFlag = currentPage->addRecord(record);
-                        cout << "CreateFromFile: Record added to page?\n";
-                        if (addFlag == false) {
+                        
+                        if (!currentPage->addRecord(record)) {
                             cerr << "Size mismatch. Terminating..." << endl;
                             exit(-1);
-                        }
+                        } 
+                        cout << "CreateFromFile: Record added to page?\n";
                     }            
                 }
 
                 // After getline finishes, if page is not empty, write to file
                 // Situation: final records, don't fill entire page
                 if (!currentPage->checkDataEmpty()) {
+
+                    // Diagnostic print
                     cout << "CreateFromFile: Test printing last page...\n";
                     pageList->printMainMemory();
-                    /*
-                    dumpFlag = dumpPages(EmployeeRelation);
-                    if (dumpFlag == false) {
-                            cerr << "Failure to copy main memory contents to file. Terminating..." << endl;
+                   
+                    // Write contents to file
+                    if (!pageList->dumpPages(EmployeeRelation, pagesWrittenToFile, header, pageDirectory)) {
+                            cerr << "Error: Failure to copy main memory contents to file. Stream not open." << endl;
                             exit(-1);
-                    */
-                    pageList->dumpPages(EmployeeRelation, pagesWrittenToFile);
+                        }
+                    // Reset to head node
                     currentPage = pageList->head;
                 }
                 delete pageList;
             };
 
+        /*
         Record stringToRecord(const std::string& recordStr) {
             // Split the recordStr by field delimiters and construct a Record object
             // Example implementation detail depends on the exact format
             cout << endl;
         };
+        */
 
         /*
         void printStructuredFileContents(const std::string& filePath) {
@@ -900,7 +912,7 @@ class StorageBufferManager {
         } */
 
 
-
+        /*
         std::vector<Record> readRecordsFromFileAndSearchByID(const std::string& filePath, int searchID) {
             std::ifstream inputFile(filePath, std::ios::binary | std::ios::in);
             std::vector<Record> matchingRecords;
@@ -922,6 +934,7 @@ class StorageBufferManager {
             inputFile.close();
             return matchingRecords;
         };
+        */
 
 
             /*
