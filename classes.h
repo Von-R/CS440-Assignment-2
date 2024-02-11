@@ -803,6 +803,15 @@ class StorageBufferManager {
             header->deserialize(dataFile);
             pageDirectory->deserialize(dataFile, header->pageDirectoryOffset);
 
+            cout << "searchID:: Deserialized file header and page directory test prints: \n\n";
+            cout << "searchID:: header->totalNumberOfPages: " << header->totalNumberOfPages << endl;
+            cout << "searchID:: pageDirectory->entryCount: " << pageDirectory->entryCount << endl;
+            cout << "searchID:: pageDirectory->nextPageDirectoryOffset: " << pageDirectory->nextPageDirectoryOffset << endl;
+            cout << "searchID:: pageDirectory->entries.size(): " << pageDirectory->entries.size() << endl;
+            cout << "searchID:: pageDirectory->entries[0].pageOffset: " << pageDirectory->entries[0].pageOffset << endl;
+            cout << "searchID:: pageDirectory->entries[0].recordsInPage: " << pageDirectory->entries[0].recordsInPage << endl;
+            
+
             // Loop through page directories
             while (pageDirectory != nullptr) {
                 cout << "searchID:: Looping through page directories...\n";
@@ -812,11 +821,14 @@ class StorageBufferManager {
                 for (int entryIndex = 0; entryIndex < pageDirectory->entryCount - 2; entryIndex++) {
                     cout << "searchID:: Looping through page directory entries...\n";
                     
-                    // Break if pageOffset is invalid/empty
+                    // Break if offset for page referenced in page directory is sentinel value / uninitialized
                     if (pageDirectory->entries[entryIndex].pageOffset == -1) {
                         cout << "searchID:: Page offset is invalid. Breaking...\n";
+                        // Diagnostic print
                         for (int i = 0; i < pageDirectory->entries.size(); i++) {
                             cout << "searchID:: pageDirectory->entries[" << i << "].pageOffset: " << pageDirectory->entries[i].pageOffset << endl;
+                            cout << "searchID:: pageDirectory->entries[" << i << "].recordsInPage: " << pageDirectory->entries[i].recordsInPage << endl;
+                            
                         }
                         break;
                     }
