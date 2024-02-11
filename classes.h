@@ -129,7 +129,7 @@ class StorageBufferManager {
                     cerr << "FileHeader.serialize: Error: File is not open for writing.\n";
                     exit(-1);
                 }
-                cout << "FileHeader.serialize: Writing file header to file at offset: " << file.tellp() << "\n";
+                cout << "\nFileHeader.serialize: Writing file header to file at offset: " << file.tellp() << "\n";
                 // Write the total number of pages to the file
                 file.write(reinterpret_cast<const char*>(&totalNumberOfPages), sizeof(totalNumberOfPages));
                 // Write the page directory size to the file
@@ -140,7 +140,7 @@ class StorageBufferManager {
                     cerr << "FileHeader.serialize: Error: Failed to write file header to file.\n";
                     exit(-1);
                 }
-                cout << "FileHeader.serialize: Finished writing file header to file. End offset: " << file.tellp() << "\n";
+                cout << "\nFileHeader.serialize: Finished writing file header to file. End offset: " << file.tellp() << "\n";
             }   
 
             void deserialize(std::ifstream& file) {
@@ -869,6 +869,7 @@ class StorageBufferManager {
 
             // Open file for reading
             ifstream dataFile("EmployeeRelation.dat", std::ios::binary | std::ios::in);
+            dataFile.seekg(0, std::ios::beg);
             
             // Error check: If file cannot be opened, print error and exit
             if (!dataFile.is_open()) {
