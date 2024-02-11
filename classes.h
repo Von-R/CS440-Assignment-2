@@ -687,21 +687,20 @@ class StorageBufferManager {
 
         };
 
-        ofstream initializeDataFile(const std::string& filename, FileHeader* header, PageDirectory* pageDirectory) {
+        void initializeDataFile(ofstream & file, FileHeader * header, PageDirectory * pageDirectory) {
             // Clear file
-            std::ofstream file(filename, std::ios::binary | std::ios::out | std::ios::trunc);
+            
 
             // Error check: If file cannot be opened, print error and exit
             if (!file.is_open()) {
-                std::cerr << "Unable to open file for initialization: " << filename << std::endl;
-                return;
+                std::cerr << "Unable to open file for initialization " << std::endl;
+                exit(-1);
             }
 
             // Write an empty file header
             header->pageDirectoryOffset = sizeof(header);
             file.write(reinterpret_cast<const char*>(&header), sizeof(header));
             file.write(reinterpret_cast<const char*>(&pageDirectory), sizeof(pageDirectory));
-            return file;
         }
 
 
@@ -759,7 +758,8 @@ class StorageBufferManager {
             ifstream fileStream(csvFName.c_str());
 
             // Bootstrap data file: create file and initialize
-            ofstream EmployeeRelation = initializeDataFile("EmployeeRelation.dat", header, pageDirectory);
+            ofstream EmployeeRelation("EmployeeRelation.dat", std::ios::binary | std::ios::out | std::ios::trunc);
+            initializeDataFile(EmployeeRelation, header, pageDirectory);
             
             // Buffer for reading line from csv: equal to max possible record size plus 1
             char buffer[2 * 8 + 200 + 500 + 1];
