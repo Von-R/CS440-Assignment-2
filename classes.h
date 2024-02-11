@@ -758,6 +758,7 @@ class StorageBufferManager {
 
         void searchID(int searchID){
             cout << "searchID begin" << endl;
+            cout << "Searching for Record ID: " << searchID << endl;
             // instantiate objects
             FileHeader * header = new FileHeader();
             PageDirectory * pageDirectory = new PageDirectory();
@@ -840,6 +841,8 @@ class StorageBufferManager {
                 while (std::getline(recordStream, field, '#')) {
                     fields.push_back(field);
                 }
+
+                cout << "Record ID: " << fields[0] << endl;
 
                 if (fields.size() == 4 && std::stoi(fields[0]) == searchID) {
                     Record foundRecord(fields);
