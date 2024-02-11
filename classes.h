@@ -219,6 +219,7 @@ class StorageBufferManager {
                 cout << "addPageDirectoryEntry:: Assert: entries["<< entryCount <<"].recordsInPage: " << entries[entryCount].recordsInPage <<
                 " == " << records << "\n";
                 entryCount++;
+                cout << "addPageDirectoryEntry:: end\nentryCount: " << entryCount << "\n";
                 return 1;
             }
 
