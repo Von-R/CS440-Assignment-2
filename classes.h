@@ -273,11 +273,11 @@ class StorageBufferManager {
 
                 // Then read each entry
                 std::cout << "PageDirectory.deserialize: Reading page directory entries from file: \n";
+                int i = 0;
                 for (auto& entry : entries) {
                     file.read(reinterpret_cast<char*>(&entry.pageOffset), sizeof(entry.pageOffset));
-                    std::cout << "OS: " << entry.pageOffset << ", ";
                     file.read(reinterpret_cast<char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
-                    std::cout << "RIP: " << entry.recordsInPage << ", ";
+                    std::cout << "Page " << i << "; OS: " << entry.pageOffset << ", RIP: " << entry.recordsInPage << ", ";
                 }
 
                 if (file.fail()) {
