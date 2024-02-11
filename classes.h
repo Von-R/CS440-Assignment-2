@@ -149,7 +149,7 @@ class StorageBufferManager {
                     exit(-1);
                 } 
 
-                cout << "FileHeader.deserialize: Reading file header from file at offset: " << file.tellg() << "\n";
+                cout << "\nFileHeader.deserialize: Reading file header from file at offset: " << file.tellg() << "\n";
                 // Read the total number of pages from the file
                 file.read(reinterpret_cast<char*>(&totalNumberOfPages), sizeof(totalNumberOfPages));
                 // Read the page directory size from the file
@@ -160,7 +160,7 @@ class StorageBufferManager {
                     cerr << "FileHeader.deserialize: Error: Failed to read file header from file.\n";
                     exit(-1);
                 }
-                cout << "FileHeader.deserialize: Finished reading file header from file. Current offset: " << file.tellg() << "\n";
+                cout << "FileHeader.deserialize: Finished reading file header from file. Current offset: " << file.tellg() << "\n\n";
             }
         };
 
@@ -218,7 +218,7 @@ class StorageBufferManager {
             // Function to serialize the PageDirectory to a file
             void serialize(std::ofstream& file) {
                 if (!file.good()) {
-                    cerr << "PageDirectory.serialize: Error: File is not open for writing.\n";
+                    cerr << "\nPageDirectory.serialize: Error: File is not open for writing.\n";
                     exit(-1);
                 }
                 std::cout << "Start writing PageDirectory at offset: " << file.tellp() << std::endl;
@@ -237,14 +237,14 @@ class StorageBufferManager {
                     cerr << "PageDirectory.serialize: Error: Failed to write page directory to file.\n";
                     exit(-1);
                 }
-                std::cout << "Finished writing PageDirectory. End offset: " << file.tellp() << std::endl;
+                std::cout << "Finished writing PageDirectory. End offset: " << file.tellp() << std::endl << endl;
 
             } 
 
             // Function to deserialize the PageDirectory from a file
             void deserialize(std::ifstream& file, int offset) {
                 if (!file.good()) {
-                    cerr << "PageDirectory.deserialize: Error: File is not open for reading.\n";
+                    cerr << "\nPageDirectory.deserialize: Error: File is not open for reading.\n";
                     exit(-1);
                 }
                 // Read the entry count and next page directory offset first
@@ -266,7 +266,7 @@ class StorageBufferManager {
                     cerr << "PageDirectory.deserialize: Error: Failed to read page directory from file.\n";
                     exit(-1);
                 }
-                std::cout << "PageDirectory.deserialize: Finished reading PageDirectory. Current offset: " << file.tellg() << std::endl;
+                std::cout << "PageDirectory.deserialize: Finished reading PageDirectory. Current offset: " << file.tellg() << std::endl << endl;
 
             }
         };
