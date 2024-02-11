@@ -559,6 +559,7 @@ class StorageBufferManager {
                     return false;
                 }
                 incrementRecordCount();
+                cout << "Incremented record count: " << recordCount << "\n";
                 //// cout  << "addRecord successful" << endl;
             }
 
