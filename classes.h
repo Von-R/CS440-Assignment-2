@@ -715,16 +715,15 @@ class StorageBufferManager {
                     }
 
                     // Diagnostic print statements: print info of most recent page added to page directory
-                    for (int i = pageDirectory->entries.size(); i > 0; i--) {
-                        if (pageDirectory->entries[i].pageOffset != -1) {
-                        cout << "dumpPages:: addPageDirectory successful. Printing most recent entry added to page directory:\n";
-                        cout << "dumpPages::pageDirectory->entries[" << i << "].pageOffset: " << pageDirectory->entries[i].pageOffset << "\n";
-                        cout << "Assert: " << pageDirectory->entries[i].pageOffset << " == " << pageOffset << "\n";
-                        cout << "dumpPages::pageDirectory->entries[" << i << "].recordsInPage: " << pageDirectory->entries[i].recordsInPage << "\n";
-                        cout << "Assert: " << pageDirectory->entries[i].recordsInPage << " == " << currentPageRecordCount << "\n\n";
-                        break;
-                        }
+                    if (pageDirectory->entries[pageDirectory->entryCount].pageOffset != -1) {
+                    cout << "dumpPages:: addPageDirectory successful. Printing most recent entry added to page directory:\n";
+                    cout << "dumpPages::pageDirectory->entries[" << pageDirectory->entryCount << "].pageOffset: " << pageDirectory->entries[pageDirectory->entryCount].pageOffset << "\n";
+                    cout << "Assert: " << pageDirectory->entries[pageDirectory->entryCount].pageOffset << " == " << pageOffset << "\n";
+                    cout << "dumpPages::pageDirectory->entries[" << pageDirectory->entryCount << "].recordsInPage: " << pageDirectory->entries[pageDirectory->entryCount].recordsInPage << "\n";
+                    cout << "Assert: " << pageDirectory->entries[pageDirectory->entryCount].recordsInPage << " == " << currentPageRecordCount << "\n\n";
+                    break;
                     }
+                    
 
                     pagesWrittenToFile++;
                     currentPage = currentPage->getNextPage();
@@ -1051,7 +1050,7 @@ class StorageBufferManager {
 
                     // Diagnostic print
                     //// cout  << "CreateFromFile: Test printing last page...\n";
-                    pageList->printMainMemory();
+                    // pageList->printMainMemory();
                    
                     // Write contents to file
                     if (!pageList->dumpPages(EmployeeRelation, pagesWrittenToFile, header, pageDirectory)) {
