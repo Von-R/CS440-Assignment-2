@@ -37,10 +37,8 @@ int main(int argc, char* const argv[]) {
         int id = stoi(input);
         
         // needs work
-        // r = manager.findRecordByID(id);
-
+        manager.searchID(id);
     }
-    //exitProgram();
     
 
     return 0;
