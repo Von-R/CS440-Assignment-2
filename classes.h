@@ -238,7 +238,10 @@ class StorageBufferManager {
                 file.write(reinterpret_cast<const char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
                 cout << "PageDirectory.serialize: nextPageDirectoryOffset: " << nextPageDirectoryOffset << "\n";
 
-                entries.resize(entryCount);
+
+                vector<PageDirectoryEntry> entriesCopy = entries;
+                entriesCopy.resize(entryCount);
+
 
                 // Then write each entry
                 cout << "PageDirectory.serialize: Writing page directory entries to file: \n";
@@ -273,7 +276,8 @@ class StorageBufferManager {
                 std::cout << "PageDirectory.deserialize: nextPageDirectoryOffset: " << nextPageDirectoryOffset << std::endl;
 
                 // Resize entries vector based on entryCount
-                entries.resize(entryCount);
+                vector<PageDirectoryEntry> entriesCopy = entries;
+                entriesCopy.resize(entryCount);
 
                 // Then read each entry
                 std::cout << "PageDirectory.deserialize: Reading page directory entries from file: \n";
