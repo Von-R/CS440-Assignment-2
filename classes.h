@@ -945,7 +945,8 @@ class StorageBufferManager {
             // cout  << "CreateFromFile: Begin createFromFile...\n";
 
             FileHeader * header = new FileHeader();
-            PageDirectory * pageDirectory = new PageDirectory();
+            PageDirectory * pageDirectoryHead = new PageDirectory();
+            PageDirectory * currentPageDirectory = pageDirectoryHead;
 
             // initialize variables
             // Offset of record
@@ -970,7 +971,7 @@ class StorageBufferManager {
 
             // Bootstrap data file: create file and initialize
             ofstream EmployeeRelation("EmployeeRelation.dat", std::ios::binary | std::ios::out | std::ios::trunc);
-            initializeDataFile(EmployeeRelation, header, pageDirectory);
+            initializeDataFile(EmployeeRelation, header, currentPageDirectory);
             
             // Buffer for reading line from csv: equal to max possible record size plus 1
             char buffer[2 * 8 + 200 + 500 + 1];
@@ -1024,7 +1025,7 @@ class StorageBufferManager {
                         //// cout  << "CreateFromFile: Main memory full. Test printing contents...\n";
                         //pageList->printMainMemory();
                         
-                        if (!pageList->dumpPages(EmployeeRelation, pagesWrittenToFile, header, pageDirectory)) {
+                        if (!pageList->dumpPages(EmployeeRelation, pagesWrittenToFile, header, currentPageDirectory)) {
                             cerr << "Error: Failure to copy main memory contents to file. Stream not open." << endl;
                             exit(-1);
                         }
@@ -1053,7 +1054,7 @@ class StorageBufferManager {
                     // pageList->printMainMemory();
                    
                     // Write contents to file
-                    if (!pageList->dumpPages(EmployeeRelation, pagesWrittenToFile, header, pageDirectory)) {
+                    if (!pageList->dumpPages(EmployeeRelation, pagesWrittenToFile, header, currentPageDirectory)) {
                             cerr << "Error: Failure to copy main memory contents to file. Stream not open." << endl;
                             exit(-1);
                         }
@@ -1061,6 +1062,18 @@ class StorageBufferManager {
                     currentPage = pageList->head;
                 }
                 delete pageList;
+
+                currentPageDirectory = pageDirectoryHead;
+
+                cout << "createFromFile: File written to successfully.\n";
+                cout << ":: header->totalNumberOfPages: " << header->totalNumberOfPages << endl;
+                cout << ":: pageDirectory->entryCount: " << currentPageDirectory->entryCount << endl;
+                cout << ":: pageDirectory->nextPageDirectoryOffset: " << currentPageDirectory->nextPageDirectoryOffset << endl;
+                cout << ":: pageDirectory->entries.size(): " << currentPageDirectory->entries.size() << endl;
+                cout << ":: pageDirectory->entries[0].pageOffset: " << currentPageDirectory->entries[0].pageOffset << endl;
+                cout << ":: pageDirectory->entries[0].recordsInPage: " << currentPageDirectory->entries[0].recordsInPage << endl;
+                cout << "/createFromFile:: End deserialized file header and page directory test prints.\n\n";
+
             };
 
         
