@@ -19,10 +19,10 @@ int main(int argc, char* const argv[]) {
 
     // Create the EmployeeRelation file from Employee.csv
 
-    // 
+    // Create a StorageBufferManager object
     StorageBufferManager manager("EmployeeRelation");
 
-
+    // Create a schema object
     manager.createFromFile("Employee.csv");
     
     // Loop to lookup IDs until user is ready to quit
@@ -36,10 +36,9 @@ int main(int argc, char* const argv[]) {
         }
         int id = stoi(input);
         
-        // needs work
+        // Search for the ID
         manager.searchID(id);
     }
     
-
     return 0;
 }
