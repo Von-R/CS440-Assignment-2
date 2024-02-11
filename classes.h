@@ -248,7 +248,7 @@ class StorageBufferManager {
                     exit(-1);
                 }
                 // Read the entry count and next page directory offset first
-                std::cout << "Start reading PageDirectory at offset: " << offset << std::endl;
+                std::cout << "PageDirectory.deserialize: Start reading PageDirectory at offset: " << offset << std::endl;
                 file.seekg(offset);
                 file.read(reinterpret_cast<char*>(&entryCount), sizeof(entryCount));
                 file.read(reinterpret_cast<char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
@@ -266,7 +266,7 @@ class StorageBufferManager {
                     cerr << "PageDirectory.deserialize: Error: Failed to read page directory from file.\n";
                     exit(-1);
                 }
-                std::cout << "Finished reading PageDirectory. Current offset: " << file.tellg() << std::endl;
+                std::cout << "PageDirectory.deserialize: Finished reading PageDirectory. Current offset: " << file.tellg() << std::endl;
 
             }
         };
@@ -882,6 +882,7 @@ class StorageBufferManager {
 
             cout << "searchID:: Deserialized file header and page directory test prints: \n\n";
             cout << "searchID:: header->totalNumberOfPages: " << header->totalNumberOfPages << endl;
+            cout << "searchID:: header->pageDirectoryOffset: " << header->pageDirectoryOffset << endl;
             cout << "searchID:: pageDirectory->entryCount: " << pageDirectory->entryCount << endl;
             cout << "searchID:: pageDirectory->nextPageDirectoryOffset: " << pageDirectory->nextPageDirectoryOffset << endl;
             cout << "searchID:: pageDirectory->entries[0].pageOffset: " << pageDirectory->entries[0].pageOffset << endl;
