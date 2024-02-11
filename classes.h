@@ -130,6 +130,9 @@ class StorageBufferManager {
                     exit(-1);
                 }
                 cout << "\nFileHeader.serialize: Writing file header to file at offset: " << file.tellp() << "\n";
+                cout << "FileHeader.serialize: totalNumberOfPages: " << totalNumberOfPages << "\n";
+                cout << "FileHeader.serialize: pageDirectorySize: " << pageDirectorySize << "\n";
+                cout << "FileHeader.serialize: pageDirectoryOffset: " << pageDirectoryOffset << "\n";
                 // Write the total number of pages to the file
                 file.write(reinterpret_cast<const char*>(&totalNumberOfPages), sizeof(totalNumberOfPages));
                 // Write the page directory size to the file
@@ -141,6 +144,7 @@ class StorageBufferManager {
                     exit(-1);
                 }
                 cout << "\nFileHeader.serialize: Finished writing file header to file. End offset: " << file.tellp() << "\n";
+                pageDirectoryOffset = file.tellp();
             }   
 
             void deserialize(std::ifstream& file) {
