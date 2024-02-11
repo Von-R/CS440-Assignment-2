@@ -172,7 +172,7 @@ class StorageBufferManager {
 
             // Add a new page directory entry
             int addPageDirectoryEntry(int offset, int records, std::ofstream& file) {
-                cout << "\naddPageDirectoryEntry:: begin\n"
+                cout << "\naddPageDirectoryEntry:: begin\n";
                 // If directory is full, write to file and return false: create new dir
                 if (entryCount >= entries.size()) {
                     serialize(file);
