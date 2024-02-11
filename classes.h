@@ -674,7 +674,7 @@ class StorageBufferManager {
                 while (currentPage != nullptr) {
 
                     // Empty page. End loop.
-                    if (currentPage->dataVectorEmpty() or currentPage->recordCount == 0) {
+                    if (currentPage->dataVectorEmpty() /* or currentPage->recordCount == 0 */) {
                         cout << "dumpPages:: Page " << currentPage->getPageNumber() << " is empty. breaking...\n";
                         break;
                     }
