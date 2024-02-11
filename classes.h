@@ -647,8 +647,11 @@ class StorageBufferManager {
                 //cout << "resetPage end" << endl;
             }
 
+            // Method to dump the pages to a file
             bool dumpPages(ofstream& file, int& pagesWrittenToFile, FileHeader* header, PageDirectory* pageDirectory) {
                 //cout << "Dumping pages to file...\n";
+
+                streampos tmpOffset;
 
                 if (!file.is_open()) {
                     cerr << "File is not open for writing.\n";
@@ -682,6 +685,14 @@ class StorageBufferManager {
 
                 // Serialize and write the updated page directory and file header here
                 // Reset the pages for reuse
+                tmpOffset = file.tellp();
+                file.seekp(0);
+                header->updateTotalNumberOfPages(pagesWrittenToFile);
+                header->updateDirectorySize();
+                header->serialize(file);
+                pageDirectory->serialize(file);
+                file.seekp(tmpOffset);
+
                 resetPages();
                 //cout << "Page dumping complete.\n";
                 return true;
@@ -936,14 +947,7 @@ class StorageBufferManager {
 
                     // While current page full and page not last page
                     while (spaceRemaining < recordSize && currentPage->getPageNumber() < maxPages - 1) {
-                        // Diagnostic print
-                        /*
-                        cout << "CreateFromFile:: Current page full; not last page.\n"<<
-                        "VERIFY: Current page space Remaining: " << spaceRemaining << " < Record Size: " << recordSize << 
-                        "\nMoving from page " << currentPage->getPageNumber() << " to page " << currentPage->getPageNumber() + 1 << "\n";
-                        cout <<  endl;
-                        */
-
+                     
                         // Advance to next page
                         currentPage = currentPage->goToNextPage();
                         // Recalculate space remaining on new page
