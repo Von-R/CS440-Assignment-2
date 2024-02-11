@@ -1,3 +1,3 @@
 Current issues:
-
+same old issue of first two pages not printing for some reason on last iteration. not effecting file output but probably messing other stuff up
 pageDirectory seems not to be storing information correctly. need to deserialize and inspect contents to ensure it's being encoded properly

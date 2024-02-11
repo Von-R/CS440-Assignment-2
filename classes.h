@@ -666,10 +666,14 @@ class StorageBufferManager {
                 Page* currentPage = head;
                 int pageOffset = 0;
                 while (currentPage != nullptr) {
+                    if (currentPage->dataVectorEmpty()) {
+                        cout << "dumpPages:: Page " << currentPage->getPageNumber() << " is empty. breaking...\n";
+                        break;
+                    }
                     // Write page contents to file, get offset pointing to beginning of free space
                     pageOffset = currentPage->writeRecordsToFile(file, currentPage->offsetSize());
                     cout << "\ndumpPages::pageOffset: " << pageOffset <<
-                    "offsetSize: " << currentPage->offsetSize() <<  "\n";
+                    ". offsetSize: " << currentPage->offsetSize() <<  "\n";
                     
                     // Error check: If pageOffset is negative stream failed to open: print error and return false
                     if (pageOffset < 0){
