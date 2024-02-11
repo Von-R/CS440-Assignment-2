@@ -802,6 +802,10 @@ class StorageBufferManager {
                     
                     // Break if pageOffset is invalid/empty
                     if (pageDirectory->entries[entryIndex].pageOffset == -1) {
+                        cout << "searchID:: Page offset is invalid. Breaking...\n";
+                        for (int i = 0; i < pageDirectory->entries.size(); i++) {
+                            cout << "searchID:: pageDirectory->entries[" << i << "].pageOffset: " << pageDirectory->entries[i].pageOffset << endl;
+                        }
                         break;
                     }
 
