@@ -763,8 +763,7 @@ class StorageBufferManager {
             FileHeader * header = new FileHeader();
             PageDirectory * pageDirectory = new PageDirectory();
             PageList * pageList = new PageList();
-            Page * currentPage = new Page(0);
-            currentPage = pageList->head;
+            Page * currentPage = pageList->head;
             int begIndex;
             int endIndex;
 
@@ -784,6 +783,7 @@ class StorageBufferManager {
             // Loop through page directories
             while (pageDirectory != nullptr) {
                 cout << "searchID:: Looping through page directories...\n";
+                cout << "searchID:: entryCount: " << pageDirectory->entryCount << "\n";
 
                 // Loop through page directory entries
                 for (int entryIndex = 0; entryIndex < pageDirectory->entryCount - 2; entryIndex++) {
