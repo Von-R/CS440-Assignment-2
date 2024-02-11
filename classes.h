@@ -236,6 +236,8 @@ class StorageBufferManager {
                 file.write(reinterpret_cast<const char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
                 cout << "PageDirectory.serialize: nextPageDirectoryOffset: " << nextPageDirectoryOffset << "\n";
 
+                entries.resize(entryCount);
+
                 // Then write each entry
                 cout << "PageDirectory.serialize: Writing page directory entries to file: \n";
                 for (const auto& entry : entries) {
@@ -273,6 +275,7 @@ class StorageBufferManager {
 
                 // Then read each entry
                 std::cout << "PageDirectory.deserialize: Reading page directory entries from file: \n";
+
                 int i = 0;
                 for (auto& entry : entries) {
                     file.read(reinterpret_cast<char*>(&entry.pageOffset), sizeof(entry.pageOffset));
@@ -969,7 +972,7 @@ class StorageBufferManager {
         // Read records from file and search by ID
         // There may be duplicates, so search the entire file
         void searchMainMemory(Page* page, int searchID) {
-            cout << "searchMainMemory begin" << endl;
+            cout << "searchMainMemory begin:: searching Page " << page->pageNumber << endl;
             if (page == nullptr) {
                 return; // Base case: Reached the end of the page list
             }
