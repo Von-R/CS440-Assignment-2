@@ -989,9 +989,9 @@ class StorageBufferManager {
                     fields.push_back(field);
                 }
 
-                cout << "Record ID: " << fields[0] << endl;
+                cout << "Record ID: " << fields[0].substr(1) << endl;
 
-                if (fields.size() == 4 && std::stoi(fields[0]) == searchID) {
+                if (fields.size() == 4 && std::stoi(fields[0].substr(1)) == searchID) {
                     Record foundRecord(fields);
                     foundRecord.print(); // Assuming Record::print() is a method to print the record details
                 }
