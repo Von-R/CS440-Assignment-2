@@ -741,6 +741,7 @@ class StorageBufferManager {
 
         void loadMemoryPage(ifstream & file, Page * page, int beginOffset, int endOffset) {
             // Error check: If file cannot be opened, print error and exit
+            cout << "loadMemoryPage begin" << endl;
             if (!file.is_open()) {
                 std::cerr << "Error opening file for reading.\n";
                 exit(-1);
@@ -752,9 +753,11 @@ class StorageBufferManager {
             for (int i = 0; i < endOffset - beginOffset; i++) {
                 file.read(reinterpret_cast<char*>(&page->data[i]), sizeof(page->data[i]));
             }
+            cout << "loadMemoryPage end" << endl;
         }
 
         void searchID(int searchID){
+            cout << "searchID begin" << endl;
             // instantiate objects
             FileHeader * header = new FileHeader();
             PageDirectory * pageDirectory = new PageDirectory();
@@ -812,11 +815,13 @@ class StorageBufferManager {
                 // Move to the next page directory
                 pageDirectory = pageDirectory->nextDirectory;
             }
+            cout << "searchID end" << endl;
         };
 
         // Read records from file and search by ID
         // There may be duplicates, so search the entire file
         void searchMainMemory(Page* page, int searchID) {
+            cout << "searchMainMemory begin" << endl;
             if (page == nullptr) {
                 return; // Base case: Reached the end of the page list
             }
@@ -844,6 +849,7 @@ class StorageBufferManager {
 
             // Recursive call with the next page
             searchMainMemory(page->getNextPage(), searchID);
+            cout << "searchMainMemory end" << endl;
         }
 
 
