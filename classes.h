@@ -164,7 +164,9 @@ class StorageBufferManager {
             void addNewPageDirectoryNode(ofstream & file) {
                 // Write the current page directory to the file
                 PageDirectory * newPageDirectory = new PageDirectory();
+                cout << "addNewPageDirectoryNode:: Writing current page directory to file.\n";
                 this->nextPageDirectoryOffset = file.tellp();
+                cout << "addNewPageDirectoryNode:: nextPageDirectoryOffset from tellp: " << nextPageDirectoryOffset << "\n";
                 this->nextDirectory = newPageDirectory;
             }
 
@@ -683,12 +685,15 @@ class StorageBufferManager {
 
                     // Update the page directory with new entry
                     int currentPageRecordCount = currentPage->getRecordCount();
+                    
                     // Add the new directory entry
-                    // Assuming you have a method to handle adding and serializing the page directory entry
                     cout << "dumpPages::Adding page directory entry. Offset: " << pageOffset << "\n";
-                    if(!pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file)){
+                    while (!pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file)){
+                        // If the page directory is full, create a new page directory node
                         pageDirectory->addNewPageDirectoryNode(file);
+                        // Advance node to the new page directory
                         pageDirectory = pageDirectory->nextDirectory;
+                        // Try again to add the page directory entry
                     }
 
                     pagesWrittenToFile++;
@@ -704,7 +709,6 @@ class StorageBufferManager {
                 header->serialize(file);
                 pageDirectory->serialize(file);
                 file.seekp(tmpOffset);
-
                 resetPages();
                 //cout << "Page dumping complete.\n";
                 return true;
@@ -810,6 +814,7 @@ class StorageBufferManager {
             cout << "searchID:: pageDirectory->entries.size(): " << pageDirectory->entries.size() << endl;
             cout << "searchID:: pageDirectory->entries[0].pageOffset: " << pageDirectory->entries[0].pageOffset << endl;
             cout << "searchID:: pageDirectory->entries[0].recordsInPage: " << pageDirectory->entries[0].recordsInPage << endl;
+            cout << "searchID:: End deserialized file header and page directory test prints.\n\n";
             
 
             // Loop through page directories
