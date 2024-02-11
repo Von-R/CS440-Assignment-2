@@ -205,6 +205,7 @@ class StorageBufferManager {
                 if (entryCount >= entries.size()) {
                     serialize(file);
                     cerr << "Error: Page directory is full. Cannot add new entry.\n" <<
+                    "Assert: entries.size(): " << entries.size() << " <= entryCount: " << entryCount << "\n" <<
                     "Create and link new page directory instead.\n";
                     return -1;
                 } else if (offset == -1 or records == 0) {
@@ -218,7 +219,7 @@ class StorageBufferManager {
                 entries[entryCount].recordsInPage = records;
                 cout << "addPageDirectoryEntry:: Assert: entries["<< entryCount <<"].recordsInPage: " << entries[entryCount].recordsInPage <<
                 " == " << records << "\n";
-                entryCount++;
+                this->entryCount++;
                 cout << "addPageDirectoryEntry:: end\nentryCount: " << entryCount << "\n";
                 return 1;
             }
