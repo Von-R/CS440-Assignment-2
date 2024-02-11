@@ -172,6 +172,7 @@ class StorageBufferManager {
 
             // Add a new page directory entry
             int addPageDirectoryEntry(int offset, int records, std::ofstream& file) {
+                cout << "\naddPageDirectoryEntry:: begin\n"
                 // If directory is full, write to file and return false: create new dir
                 if (entryCount >= entries.size()) {
                     serialize(file);
@@ -184,7 +185,11 @@ class StorageBufferManager {
                 }
                 cout << "addPageDirectoryEntry:: Adding new page directory entry. Offset: " << offset << "\n";
                 entries[entryCount].pageOffset = offset;
+                cout << "addPageDirectoryEntry:: Assert: entries[entryCount].pageOffset: " << entries[entryCount].pageOffset << 
+                " == " << offset << "\n";
                 entries[entryCount].recordsInPage = records;
+                cout << "addPageDirectoryEntry:: Assert: entries[entryCount].recordsInPage: " << entries[entryCount].recordsInPage <<
+                " == " << records << "\n";
                 entryCount++;
                 return 1;
             }
