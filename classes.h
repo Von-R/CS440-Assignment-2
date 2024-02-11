@@ -536,6 +536,7 @@ class StorageBufferManager {
                     // Write each character in the range [startOffset, endOffset) to the file
                     for (int j = startOffset; j < endOffset; ++j) {
                         if (data[j] != sentinelValue) {
+                            cout << data[j];   
                             outputFile.write(reinterpret_cast<const char*>(&data[j]), sizeof(data[j]));
                         }
                     }
