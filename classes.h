@@ -115,6 +115,32 @@ class StorageBufferManager {
 
             // Default constructor
             FileHeader() : totalNumberOfPages(0), pageDirectoryOffset(sizeof(FileHeader)), pageDirectorySize(0) {}
+
+            void updateTotalNumberOfPages(int newTotal) {
+                totalNumberOfPages = newTotal;
+            }
+
+            void updateDirectorySize() {
+                pageDirectorySize++;
+            }
+
+            void serialize(std::ofstream& file) {
+                // Write the total number of pages to the file
+                file.write(reinterpret_cast<const char*>(&totalNumberOfPages), sizeof(totalNumberOfPages));
+                // Write the page directory size to the file
+                file.write(reinterpret_cast<const char*>(&pageDirectorySize), sizeof(pageDirectorySize));
+                // Write the offset to the page directory to the file
+                file.write(reinterpret_cast<const char*>(&pageDirectoryOffset), sizeof(pageDirectoryOffset));
+            }   
+
+            void deserialize(std::ifstream& file) {
+                // Read the total number of pages from the file
+                file.read(reinterpret_cast<char*>(&totalNumberOfPages), sizeof(totalNumberOfPages));
+                // Read the page directory size from the file
+                file.read(reinterpret_cast<char*>(&pageDirectorySize), sizeof(pageDirectorySize));
+                // Read the offset to the page directory from the file
+                file.read(reinterpret_cast<char*>(&pageDirectoryOffset), sizeof(pageDirectoryOffset));
+            }
         };
 
         struct PageDirectoryEntry {
@@ -130,20 +156,31 @@ class StorageBufferManager {
             std::vector<PageDirectoryEntry> entries; // Holds entries for each page
             int entryCount; // Keep track of valid entries so far. Used for add indexing
             int nextPageDirectoryOffset; // File offset to the next directory, or -1 if this is the last
+            PageDirectory * nextDirectory; // Pointer to the next directory in the list
 
             // Default constructor
-            PageDirectory() : nextPageDirectoryOffset(-1), entries(100), entryCount(0) {}
+            PageDirectory() : nextPageDirectoryOffset(-1), entries(100), entryCount(0), nextDirectory(nullptr) {}
+
+            void addNewPageDirectoryNode(ofstream & file) {
+                // Write the current page directory to the file
+                PageDirectory * newPageDirectory = new PageDirectory();
+                this->nextPageDirectoryOffset = file.tellp();
+                this->nextDirectory = newPageDirectory;
+            }
 
             // Add a new page directory entry
-            void addPageDirectoryEntry(int offset, int records) {
+            bool addPageDirectoryEntry(int offset, int records, std::ofstream& file) {
+                // If directory is full, write to file and return false: create new dir
                 if (entryCount >= entries.size()) {
+                    serialize(file);
                     cerr << "Error: Page directory is full. Cannot add new entry.\n" <<
                     "Create and link new page directory instead.\n";
-                    return;
+                    return false;
                 }
                 entries[entryCount].pageOffset = offset;
                 entries[entryCount].recordsInPage = records;
                 entryCount++;
+                return true;
             }
 
             // Function to serialize the PageDirectory to a file
@@ -160,8 +197,9 @@ class StorageBufferManager {
             }
 
             // Function to deserialize the PageDirectory from a file
-            void deserialize(std::ifstream& file) {
+            void deserialize(std::ifstream& file, int offset) {
                 // Read the entry count and next page directory offset first
+                file.seekg(offset);
                 file.read(reinterpret_cast<char*>(&entryCount), sizeof(entryCount));
                 file.read(reinterpret_cast<char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
 
@@ -173,11 +211,6 @@ class StorageBufferManager {
                     file.read(reinterpret_cast<char*>(&entry.pageOffset), sizeof(entry.pageOffset));
                     file.read(reinterpret_cast<char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
                 }
-            }
-
-            // Function to update the next directory offset
-            void setNextPageDirectoryOffset(int offset) {
-                nextPageDirectoryOffset = offset;
             }
         };
 
@@ -520,14 +553,13 @@ class StorageBufferManager {
                 cout << "addRecord successful" << endl;
             }
 
-            // Method to write the contents of this page to a file
+            // Method to write the contents of this page to a file, return 
+            // offset to end of page in file
             int writeRecordsToFile(std::ofstream& outputFile, int offsetSize) {
                 if (!outputFile.is_open()) {
                     std::cerr << "Error: Output file is not open for writing.\n";
                     return -1; // Indicate error
                 }
-
-               
 
                 for (int i = 0; i < offsetSize - 1; ++i) { // -1 to prevent accessing beyond the last valid index
                     int startOffset = offsetArray[i];
@@ -623,7 +655,7 @@ class StorageBufferManager {
                 Page* currentPage = head;
                 int pageOffset = 0;
                 while (currentPage != nullptr) {
-                    // Write page contents to file, get offset pointing to 
+                    // Write page contents to file, get offset pointing to beginning of free space
                     pageOffset = currentPage->writeRecordsToFile(file, currentPage->offsetSize());
                     
                     // Error check: If pageOffset is negative stream failed to open: print error and return false
@@ -633,11 +665,13 @@ class StorageBufferManager {
                     }
 
                     // Update the page directory with new entry
-                    
                     int currentPageRecordCount = currentPage->getRecordCount();
                     // Add the new directory entry
                     // Assuming you have a method to handle adding and serializing the page directory entry
-                    pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount);
+                    if(!pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file)){
+                        pageDirectory->addNewPageDirectoryNode(file);
+                        pageDirectory = pageDirectory->nextDirectory;
+                    }
 
                     pagesWrittenToFile++;
                     currentPage = currentPage->getNextPage();
@@ -671,27 +705,9 @@ class StorageBufferManager {
 
         }; // End of PageList definition
 
-        // TODO: Implement this function
-        /*
-        reserve space for file header
-        reserve space of page directory. 
-        store relevant info in file header
-        */
-        void setMaxPagesOnDisk() {
-            // Assuming:
-            // BLOCK_SIZE is the size of a page in bytes.
-            // sizeof(Page::PageHeader) gives the static size of the page header.
-            // get<1>(initializationResults) returns the total size of the offset array in bytes.
-            // get<2>(initializationResults) provides the size of the largest record.
-
-            StorageBufferManager::maxPagesOnDisk = (BLOCK_SIZE - sizeof(Page::PageHeader) - get<1>(initializationResults)) / get<2>(initializationResults);
-
-        };
-
         void initializeDataFile(ofstream & file, FileHeader * header, PageDirectory * pageDirectory) {
             // Clear file
             
-
             // Error check: If file cannot be opened, print error and exit
             if (!file.is_open()) {
                 std::cerr << "Unable to open file for initialization " << std::endl;
@@ -720,16 +736,76 @@ class StorageBufferManager {
             return Record(fields);
         };
 
-        
+        void searchID(int searchID){
+            // instantiate objects
+            FileHeader * header = new FileHeader();
+            PageDirectory * pageDirectory = new PageDirectory();
+            PageList * pageList = new PageList();
 
+            // Open file for reading
+            ifstream dataFile("EmployeeRelation.dat", std::ios::binary | std::ios::in);
+            
+            // Error check: If file cannot be opened, print error and exit
+            if (!dataFile.is_open()) {
+                std::cerr << "Error opening file for reading.\n";
+                exit(-1);
+            }
+
+            // Deserialize file header and page directory
+            header->deserialize(dataFile);
+            pageDirectory->deserialize(dataFile, header->pageDirectoryOffset);
+
+            // Loop through page directories
+            while (pageDirectory != nullptr) {
+                // Loop through page directory entries
+                for (const auto& pageEntry : pageDirectory->entries) {
+                    // Search the page for the ID
+                    if (pageEntry.pageOffset == -1) {
+                        break;
+                    }
+                    searchByPage(dataFile, pageEntry.pageOffset, searchID);
+                }
+                // Move to the next page directory
+                pageDirectory = pageDirectory->nextDirectory;
+            }
+        }
+
+        // Read records from file and search by ID
+        // There may be duplicates, so search entire file
+        std::vector<Record> searchByPage(ifstream & dataFile, int pageOffset, int searchID) {
+            
+            std::vector<Record> matchingRecords;
+            
+            if (!dataFile) {
+                std::cerr << "Error opening file for reading.\n";
+                exit(-1);
+            }
+
+            // Start at pageOffset, end at next offset or eof
+            // Read lines, using delimiters to separate fields
+            // Check ID: if match reconstruct and print record
+
+            std::string line;
+            while (getline(dataFile, line)) {
+                if (line.empty()) continue; // Skip empty lines or end of file markers
+                
+                Record record = createRecord(line); // Deserialize string to record
+                if (record.id == searchID) {
+                    matchingRecords.push_back(record);
+                }
+            }
+
+            for (auto& record : matchingRecords) {
+                record.print();
+            }
+        };
 
         void exitProgram(ofstream &EmpStream) {
             if (EmpStream.is_open()) {
                 EmpStream.close();
             }
         };
-
-        
+ 
         // Read csv file (Employee.csv) and add records to the (EmployeeRelation)
         void createFromFile(string csvFName) {
             cout << "CreateFromFile: Begin createFromFile...\n";
@@ -859,13 +935,7 @@ class StorageBufferManager {
                 delete pageList;
             };
 
-        /*
-        Record stringToRecord(const std::string& recordStr) {
-            // Split the recordStr by field delimiters and construct a Record object
-            // Example implementation detail depends on the exact format
-            cout << endl;
-        };
-        */
+        
 
         /*
         void printStructuredFileContents(const std::string& filePath) {
@@ -910,70 +980,6 @@ class StorageBufferManager {
             }
 
             file.close();
-        } */
-
-
-        /*
-        std::vector<Record> readRecordsFromFileAndSearchByID(const std::string& filePath, int searchID) {
-            std::ifstream inputFile(filePath, std::ios::binary | std::ios::in);
-            std::vector<Record> matchingRecords;
-            if (!inputFile) {
-                std::cerr << "Error opening file for reading.\n";
-                return matchingRecords;
-            }
-
-            std::string line;
-            while (std::getline(inputFile, line)) {
-                if (line.empty()) continue; // Skip empty lines or end of file markers
-                
-                Record record = stringToRecord(line); // Deserialize string to record
-                if (record.id == searchID) {
-                    matchingRecords.push_back(record);
-                }
-            }
-
-            inputFile.close();
-            return matchingRecords;
-        };
-        */
-
-
-            /*
-            int getRecordCount(string filename) {
-                ifstream fileStream(filename);
-                string line;
-                int count = 0;
-                if (fileStream.is_open()) {
-                    while (getline(fileStream, line)) {
-                        count++;
-                    }
-                }
-                return count;
-            }
-
-            // Given an ID, find the relevant record and print it
-            Record findRecordById(int id) {
-                // rid = page id, offset 
-                ifstream relationStream("EmployeeRelation.dat");
-                string line;
-                if (relationStream.is_open()) {
-                    while (getline(relationStream, line)) {
-                        // Split line into fields
-                        vector<string> fields;
-                        stringstream ss(line);
-                        string field;
-                        while (getline(ss, field, ',')) {
-                            fields.push_back(field);
-                        }
-                        // Check if ID matches
-                        if (stoi(fields[0]) == id) {
-                            // Return record
-                            return &Record(fields).toString();
-                        }
-                    }
-                }
-                
-            }
         } */
     }; 
 };    // End of StorageBufferManager definition
