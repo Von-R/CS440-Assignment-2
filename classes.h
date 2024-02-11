@@ -668,12 +668,17 @@ class StorageBufferManager {
                 Page* currentPage = head;
                 int pageOffset = 0;
                 while (currentPage != nullptr) {
+
+                    // Empty page. End loop.
                     if (currentPage->dataVectorEmpty()) {
                         cout << "dumpPages:: Page " << currentPage->getPageNumber() << " is empty. breaking...\n";
                         break;
                     }
-                    // Write page contents to file, get offset pointing to beginning of free space
+
+                    // Write page contents to file, get offset pointing to beginning of free space in file
                     pageOffset = currentPage->writeRecordsToFile(file, currentPage->offsetSize());
+
+                    // Diagnostic print statements: page offset and number of offsets in page offset array
                     cout << "\ndumpPages::pageOffset: " << pageOffset <<
                     ". offsetSize: " << currentPage->offsetSize() <<  "\n";
                     
@@ -681,12 +686,14 @@ class StorageBufferManager {
                     if (pageOffset < 0){
                         cerr << "Failed to write page records to file.\n";
                         return false;
+                    } else {
+                        cout << "dumpPages:: pageOffset " << pageOffset << " >= 0\n";
                     }
 
-                    // Update the page directory with new entry
+                    // Update page count for new page directory entry
                     int currentPageRecordCount = currentPage->getRecordCount();
                     
-                    // Add the new directory entry
+                    // Update the page directory with new entry
                     cout << "dumpPages::Adding page directory entry. Offset: " << pageOffset << "\n";
                     while (!pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file)){
                         // If the page directory is full, create a new page directory node
@@ -713,8 +720,6 @@ class StorageBufferManager {
                 //cout << "Page dumping complete.\n";
                 return true;
             }
-
-            
 
             /*
             Test function: Use to confirm page is being filled properly. 
