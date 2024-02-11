@@ -185,10 +185,10 @@ class StorageBufferManager {
                 }
                 cout << "addPageDirectoryEntry:: Adding new page directory entry. Offset: " << offset << "\n";
                 entries[entryCount].pageOffset = offset;
-                cout << "addPageDirectoryEntry:: Assert: entries[entryCount].pageOffset: " << entries[entryCount].pageOffset << 
+                cout << "addPageDirectoryEntry:: Assert: entries["<< entryCount <<"].pageOffset: " << entries[entryCount].pageOffset << 
                 " == " << offset << "\n";
                 entries[entryCount].recordsInPage = records;
-                cout << "addPageDirectoryEntry:: Assert: entries[entryCount].recordsInPage: " << entries[entryCount].recordsInPage <<
+                cout << "addPageDirectoryEntry:: Assert: entries["<< entryCount <<"].recordsInPage: " << entries[entryCount].recordsInPage <<
                 " == " << records << "\n";
                 entryCount++;
                 return 1;
