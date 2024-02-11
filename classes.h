@@ -205,7 +205,7 @@ class StorageBufferManager {
                     file.write(reinterpret_cast<const char*>(&entry.pageOffset), sizeof(entry.pageOffset));
                     file.write(reinterpret_cast<const char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
                 }
-            }
+            } 
 
             // Function to deserialize the PageDirectory from a file
             void deserialize(std::ifstream& file, int offset) {
