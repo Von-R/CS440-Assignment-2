@@ -726,7 +726,7 @@ class StorageBufferManager {
                 }
 
                 Page* currentPage = head;
-                int pageOffset = 0;
+                int pageOffset = file.tellp();
                 while (currentPage != nullptr) {
 
                     // Empty page. End loop.
@@ -906,7 +906,7 @@ class StorageBufferManager {
                     
                     // Break if offset for page referenced in page directory is sentinel value / uninitialized
                     if (pageDirectory->entries[entryIndex].pageOffset == -1) {
-                        cout << "searchID:: Page offset is invalid. Breaking...\n";
+                        cout << "searchID:: Error: Page offset is invalid. Breaking...\n";
                         // Diagnostic print
                         for (int i = 0; i < pageDirectory->entries.size(); i++) {
                             cout << "searchID:: pageDirectory->entries[" << i << "].pageOffset: " << pageDirectory->entries[i].pageOffset << endl;
