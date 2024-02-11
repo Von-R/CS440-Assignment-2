@@ -550,19 +550,19 @@ class StorageBufferManager {
                         // cout  << data[i];
                     }
                     */
-                    return true;
+                incrementRecordCount();
+                cout << "Incremented record count: " << recordCount << "\n";
+                return true;
 
                 } else if (offsetOfNextRecord + recordSize > data.size()) {
                     std::cerr << "addRecord:: Error: Attempt to exceed predefined max size of data vector.\n";
-                   
                     return false;
                 } else {
                     std::cerr << "addRecord:: Error: Unknown error occurred while adding record to page.\n";
-               
                     return false;
                 }
-                incrementRecordCount();
-                cout << "Incremented record count: " << recordCount << "\n";
+
+                
                 //// cout  << "addRecord successful" << endl;
             }
 
