@@ -189,13 +189,14 @@ class StorageBufferManager {
             // Default constructor
             PageDirectory() : nextPageDirectoryOffset(-1), entries(100), entryCount(0), nextDirectory(nullptr) {}
 
-            void addNewPageDirectoryNode(ofstream & file) {
+            void addNewPageDirectoryNode(ofstream & file, FileHeader * header) {
                 // Write the current page directory to the file
                 PageDirectory * newPageDirectory = new PageDirectory();
                 cout << "addNewPageDirectoryNode:: Writing current page directory to file.\n";
                 this->nextPageDirectoryOffset = file.tellp();
                 cout << "addNewPageDirectoryNode:: nextPageDirectoryOffset from tellp: " << nextPageDirectoryOffset << "\n";
                 this->nextDirectory = newPageDirectory;
+                header->updateDirectorySize();
             }
 
             // Add a new page directory entry
@@ -785,8 +786,7 @@ class StorageBufferManager {
                     while (pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file) == -1){
                         cout << "dumpPages::Page directory is full. Creating new page directory node.\n";
                         // If the page directory is full, create a new page directory node
-                        pageDirectory->addNewPageDirectoryNode(file);
-                        header->updateDirectorySize();
+                        pageDirectory->addNewPageDirectoryNode(file, header);
                         // Advance node to the new page directory
                         pageDirectory = pageDirectory->nextDirectory;
                         // Try again to add the page directory entry
