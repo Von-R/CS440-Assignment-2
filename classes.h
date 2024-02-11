@@ -277,7 +277,8 @@ class StorageBufferManager {
                 for (auto& entry : entries) {
                     file.read(reinterpret_cast<char*>(&entry.pageOffset), sizeof(entry.pageOffset));
                     file.read(reinterpret_cast<char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
-                    std::cout << "Page " << i << "; OS: " << entry.pageOffset << ", RIP: " << entry.recordsInPage << ", ";
+                    std::cout << "Page " << i << "; OS: " << entry.pageOffset << ", RIP: " << entry.recordsInPage << " ||| ";
+                    i++;
                 }
 
                 if (file.fail()) {
@@ -740,7 +741,7 @@ class StorageBufferManager {
                 }
 
                 Page* currentPage = head;
-                int pageOffset = file.tellp();
+                int pageOffset;
 
                 int dummyVal;
                 while (currentPage != nullptr) {
@@ -770,6 +771,7 @@ class StorageBufferManager {
                     int currentPageRecordCount = currentPage->getRecordCount();
                     
                     // Update the page directory with new entry
+                    pageOffset = file.tellp();
                     cout << "dumpPages::Adding page directory entry. Offset: " << pageOffset << "\n";
                     while (pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file) == -1){
                         cout << "dumpPages::Page directory is full. Creating new page directory node.\n";
