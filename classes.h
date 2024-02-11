@@ -727,6 +727,8 @@ class StorageBufferManager {
 
                 Page* currentPage = head;
                 int pageOffset = file.tellp();
+
+                int dummyVal;
                 while (currentPage != nullptr) {
 
                     // Empty page. End loop.
@@ -736,7 +738,7 @@ class StorageBufferManager {
                     }
 
                     // Write page contents to file, get offset pointing to beginning of free space in file
-                    pageOffset = currentPage->writeRecordsToFile(file, currentPage->offsetSize());
+                    dummyVal = currentPage->writeRecordsToFile(file, currentPage->offsetSize());
 
                     // Diagnostic print statements: page offset and number of offsets in page offset array
                     cout << "\ndumpPages::pageOffset: " << pageOffset <<
