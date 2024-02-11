@@ -125,21 +125,42 @@ class StorageBufferManager {
             }
 
             void serialize(std::ofstream& file) {
+                if (!file.good()) {
+                    cerr << "FileHeader.serialize: Error: File is not open for writing.\n";
+                    exit(-1);
+                }
+                cout << "FileHeader.serialize: Writing file header to file at offset: " << file.tellp() << "\n";
                 // Write the total number of pages to the file
                 file.write(reinterpret_cast<const char*>(&totalNumberOfPages), sizeof(totalNumberOfPages));
                 // Write the page directory size to the file
                 file.write(reinterpret_cast<const char*>(&pageDirectorySize), sizeof(pageDirectorySize));
                 // Write the offset to the page directory to the file
                 file.write(reinterpret_cast<const char*>(&pageDirectoryOffset), sizeof(pageDirectoryOffset));
+                if (file.fail()) {
+                    cerr << "FileHeader.serialize: Error: Failed to write file header to file.\n";
+                    exit(-1);
+                }
+                cout << "FileHeader.serialize: Finished writing file header to file. End offset: " << file.tellp() << "\n";
             }   
 
             void deserialize(std::ifstream& file) {
+                if (!file.good()) {
+                    cerr << "FileHeader.deserialize: Error: File is not open for reading.\n";
+                    exit(-1);
+                } 
+
+                cout << "FileHeader.deserialize: Reading file header from file at offset: " << file.tellg() << "\n";
                 // Read the total number of pages from the file
                 file.read(reinterpret_cast<char*>(&totalNumberOfPages), sizeof(totalNumberOfPages));
                 // Read the page directory size from the file
                 file.read(reinterpret_cast<char*>(&pageDirectorySize), sizeof(pageDirectorySize));
                 // Read the offset to the page directory from the file
                 file.read(reinterpret_cast<char*>(&pageDirectoryOffset), sizeof(pageDirectoryOffset));
+                if (file.fail()) {
+                    cerr << "FileHeader.deserialize: Error: Failed to read file header from file.\n";
+                    exit(-1);
+                }
+                cout << "FileHeader.deserialize: Finished reading file header from file. Current offset: " << file.tellg() << "\n";
             }
         };
 
@@ -196,6 +217,12 @@ class StorageBufferManager {
 
             // Function to serialize the PageDirectory to a file
             void serialize(std::ofstream& file) {
+                if (!file.good()) {
+                    cerr << "PageDirectory.serialize: Error: File is not open for writing.\n";
+                    exit(-1);
+                }
+                std::cout << "Start writing PageDirectory at offset: " << file.tellp() << std::endl;
+
                 // Write the entry count and next page directory offset first
                 file.write(reinterpret_cast<const char*>(&entryCount), sizeof(entryCount));
                 file.write(reinterpret_cast<const char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
@@ -205,11 +232,23 @@ class StorageBufferManager {
                     file.write(reinterpret_cast<const char*>(&entry.pageOffset), sizeof(entry.pageOffset));
                     file.write(reinterpret_cast<const char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
                 }
+
+                if (file.fail()) {
+                    cerr << "PageDirectory.serialize: Error: Failed to write page directory to file.\n";
+                    exit(-1);
+                }
+                std::cout << "Finished writing PageDirectory. End offset: " << file.tellp() << std::endl;
+
             } 
 
             // Function to deserialize the PageDirectory from a file
             void deserialize(std::ifstream& file, int offset) {
+                if (!file.good()) {
+                    cerr << "PageDirectory.deserialize: Error: File is not open for reading.\n";
+                    exit(-1);
+                }
                 // Read the entry count and next page directory offset first
+                std::cout << "Start reading PageDirectory at offset: " << offset << std::endl;
                 file.seekg(offset);
                 file.read(reinterpret_cast<char*>(&entryCount), sizeof(entryCount));
                 file.read(reinterpret_cast<char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
@@ -222,6 +261,13 @@ class StorageBufferManager {
                     file.read(reinterpret_cast<char*>(&entry.pageOffset), sizeof(entry.pageOffset));
                     file.read(reinterpret_cast<char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
                 }
+
+                if (file.fail()) {
+                    cerr << "PageDirectory.deserialize: Error: Failed to read page directory from file.\n";
+                    exit(-1);
+                }
+                std::cout << "Finished reading PageDirectory. Current offset: " << file.tellg() << std::endl;
+
             }
         };
 
@@ -838,7 +884,6 @@ class StorageBufferManager {
             cout << "searchID:: header->totalNumberOfPages: " << header->totalNumberOfPages << endl;
             cout << "searchID:: pageDirectory->entryCount: " << pageDirectory->entryCount << endl;
             cout << "searchID:: pageDirectory->nextPageDirectoryOffset: " << pageDirectory->nextPageDirectoryOffset << endl;
-            cout << "searchID:: pageDirectory->entries.size(): " << pageDirectory->entries.size() << endl;
             cout << "searchID:: pageDirectory->entries[0].pageOffset: " << pageDirectory->entries[0].pageOffset << endl;
             cout << "searchID:: pageDirectory->entries[0].recordsInPage: " << pageDirectory->entries[0].recordsInPage << endl;
             cout << "searchID:: End deserialized file header and page directory test prints.\n\n";
@@ -1069,7 +1114,6 @@ class StorageBufferManager {
                 cout << ":: header->totalNumberOfPages: " << header->totalNumberOfPages << endl;
                 cout << ":: pageDirectory->entryCount: " << currentPageDirectory->entryCount << endl;
                 cout << ":: pageDirectory->nextPageDirectoryOffset: " << currentPageDirectory->nextPageDirectoryOffset << endl;
-                cout << ":: pageDirectory->entries.size(): " << currentPageDirectory->entries.size() << endl;
                 cout << ":: pageDirectory->entries[0].pageOffset: " << currentPageDirectory->entries[0].pageOffset << endl;
                 cout << ":: pageDirectory->entries[0].recordsInPage: " << currentPageDirectory->entries[0].recordsInPage << endl;
                 cout << "/createFromFile:: End deserialized file header and page directory test prints.\n\n";
