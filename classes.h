@@ -786,6 +786,7 @@ class StorageBufferManager {
                         cout << "dumpPages::Page directory is full. Creating new page directory node.\n";
                         // If the page directory is full, create a new page directory node
                         pageDirectory->addNewPageDirectoryNode(file);
+                        header->updateDirectorySize();
                         // Advance node to the new page directory
                         pageDirectory = pageDirectory->nextDirectory;
                         // Try again to add the page directory entry
@@ -811,7 +812,7 @@ class StorageBufferManager {
                 tmpOffset = file.tellp();
                 file.seekp(0);
                 header->updateTotalNumberOfPages(pagesWrittenToFile);
-                header->updateDirectorySize();
+                
                 header->serialize(file);
                 pageDirectory->serialize(file);
                 file.seekp(tmpOffset);
