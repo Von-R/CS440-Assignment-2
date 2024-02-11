@@ -177,6 +177,7 @@ class StorageBufferManager {
                     "Create and link new page directory instead.\n";
                     return false;
                 }
+                cout << "addPageDirectoryEntry:: Adding new page directory entry. Offset: " << offset << "\n";
                 entries[entryCount].pageOffset = offset;
                 entries[entryCount].recordsInPage = records;
                 entryCount++;
@@ -215,7 +216,7 @@ class StorageBufferManager {
         };
 
          tuple<std::vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializeValues() {
-                    cout << "initializeValues begin" << endl;
+                    // cout << "initializeValues begin" << endl;
 
                     int fileCount = 0;
                     int minBioLen = INT_MAX;
@@ -376,10 +377,10 @@ class StorageBufferManager {
 
         // Method to calculate the space remaining in the page
         int calcSpaceRemaining() {
-            cout << "calcSpaceRemaining entered:" << endl;
+            // cout  << "calcSpaceRemaining entered:" << endl;
             // Calculate the space remaining based on current usage. PageHeader, page_size and offsetArraySize are all static members/fixed
             int newSpaceRemaining = page_size - dataSize(data, sentinelValue) - offsetArraySize - sizeof(PageHeader);
-            cout << "calcSpaceRemaining::newSpaceRemaining: " << newSpaceRemaining << endl;
+            // cout  << "calcSpaceRemaining::newSpaceRemaining: " << newSpaceRemaining << endl;
             return newSpaceRemaining;
         }
 
@@ -416,7 +417,7 @@ class StorageBufferManager {
 
             // Check if page is empty. If so simply return
             if (offsetArrayEmpty() && dataVectorEmpty()) {
-                cout << "Page is empty. No records to print.\n";
+                // cout  << "Page is empty. No records to print.\n";
                 return;
             };
 
@@ -433,14 +434,14 @@ class StorageBufferManager {
             };
 
             // Initial print statements
-            cout << "printPageContentsByOffset begin" << endl;
-            cout << "Page Number: " << pageNumber << endl;
-            cout << "Records in Page: " << pageHeader.recordsInPage << endl;
-            cout << "Space Remaining: " << pageHeader.spaceRemaining << endl;
-            cout << "Offset\t\tBeginning of record\t\tRecord Size\n";
+            // cout  << "printPageContentsByOffset begin" << endl;
+            // cout  << "Page Number: " << pageNumber << endl;
+            // cout  << "Records in Page: " << pageHeader.recordsInPage << endl;
+            // cout  << "Space Remaining: " << pageHeader.spaceRemaining << endl;
+            // cout  << "Offset\t\tBeginning of record\t\tRecord Size\n";
 
             int elementsInOffsetArray = offsetSize();
-            cout << "elements in offset array: " << elementsInOffsetArray << endl;
+            // cout  << "elements in offset array: " << elementsInOffsetArray << endl;
 
             for (size_t i = 0; i <  elementsInOffsetArray; ++i) {
                 // Validate the current offset
@@ -453,7 +454,7 @@ class StorageBufferManager {
                 int startOffset = offsetArray[i];
                 int endOffset = (i + 1 < elementsInOffsetArray) ? offsetArray[i + 1] : dataSize(data);
 
-                if (endOffset == dataSize(data)) { cout << "endOffset currently equal to dataSize(data)" << dataSize(data) << endl;}
+                //if (endOffset == dataSize(data)) { cout << "endOffset currently equal to dataSize(data)" << dataSize(data) << endl;}
 
                 // Validate the end offset
                 if (endOffset > static_cast<int>(dataSize(data))) {
@@ -462,16 +463,19 @@ class StorageBufferManager {
                 }
 
                 // Print the offset in hexadecimal and the record's contents
+                /*
                 cout << "0x" << setw(3) << setfill('0') << hex << startOffset << "\t";
                 for (int j = startOffset; j < endOffset; ++j) {
                     // Ensure printing of printable characters only
                     cout << (isprint(data[j]) ? data[j] : '.');
                 }
                 
+                
                 cout << "\t\t" << dec << endOffset - startOffset << "\n\n";
                 cout << "endoffset: " << endOffset << "\nstartOffset: "<< startOffset << endl;
+                */
             }
-            cout << "printPageContentsByOffset end" << endl;
+            // cout  << "printPageContentsByOffset end" << endl;
         }
 
         // Method to find the offset of the next record in the data vector
@@ -502,12 +506,12 @@ class StorageBufferManager {
 
         // Method to add a record to the page
         bool addRecord(const Record& record) {
-            //cout << "addRecord begin" << endl;
+            //// cout  << "addRecord begin" << endl;
 
             auto recordString = record.toString();
 
             // This should print out a properly formatted record string with not trailing periods
-            //cout << "addRecord:: TEST PRINT: Record string: " << recordString << "\n";
+            //// cout  << "addRecord:: TEST PRINT: Record string: " << recordString << "\n";
 
             size_t recordSize = recordString.size();
             
@@ -522,10 +526,10 @@ class StorageBufferManager {
 
             // Ensure the insertion does not exceed the vector's predefined max size
             if (offsetOfNextRecord + recordSize <= data.size()) {
-                //cout << "addRecord:: Adding record to page: " << this->pageNumber << "\n";
+                //// cout  << "addRecord:: Adding record to page: " << this->pageNumber << "\n";
                 std::copy(recordString.begin(), recordString.end(), data.begin() + offsetOfNextRecord);
                 pageHeader.recordsInPage += 1;
-                //cout << "addRecord:: spaceRemaining - recordSize: " << pageHeader.spaceRemaining << " - " << recordSize << " = " << pageHeader.spaceRemaining - recordSize << endl;
+                //// cout  << "addRecord:: spaceRemaining - recordSize: " << pageHeader.spaceRemaining << " - " << recordSize << " = " << pageHeader.spaceRemaining - recordSize << endl;
                 pageHeader.spaceRemaining -= recordSize;
                 //offsetArray.push_back(offsetOfNextRecord);
 
@@ -535,25 +539,25 @@ class StorageBufferManager {
                 }
 
                     /*
-                    cout << "addRecord::Test: Confirm record added to page:\nPrinting stored record from main memory: \n";
-                    cout << "0x" << setw(3) << setfill('0') << hex << offsetArray.back() << "\t" << dec;
+                    // cout  << "addRecord::Test: Confirm record added to page:\nPrinting stored record from main memory: \n";
+                    // cout  << "0x" << setw(3) << setfill('0') << hex << offsetArray.back() << "\t" << dec;
                     for (int i = offsetOfNextRecord; i < offsetOfNextRecord + recordSize; ++i) {
-                        cout << data[i];
+                        // cout  << data[i];
                     }
                     */
                     return true;
 
                 } else if (offsetOfNextRecord + recordSize > data.size()) {
                     std::cerr << "addRecord:: Error: Attempt to exceed predefined max size of data vector.\n";
-                    cout << "addRecord failed" << endl;
+                   
                     return false;
                 } else {
                     std::cerr << "addRecord:: Error: Unknown error occurred while adding record to page.\n";
-                    cout << "addRecord failed" << endl;
+               
                     return false;
                 }
                 incrementRecordCount();
-                //cout << "addRecord successful" << endl;
+                //// cout  << "addRecord successful" << endl;
             }
 
             // Method to write the contents of this page to a file, return 
@@ -592,50 +596,50 @@ class StorageBufferManager {
             // Constructor for the PageList class
             // Head is initialized as page 0 and linked list created from it
             PageList() {
-                //cout << "PageList constructor begin" << endl;
+                //// cout  << "PageList constructor begin" << endl;
                 head = initializePageList();
-                //cout << "PageList constructor end" << endl;
+                //// cout  << "PageList constructor end" << endl;
             }
 
             // Create 'maxPages' number of pages and link them together
             // Initialization of head member attirbutes done in head constructor
             Page* initializePageList() {
-                //cout << "initializePageList begin" << endl;
+                //// cout  << "initializePageList begin" << endl;
                 Page *tail = nullptr;
                 for (int i = 0; i < maxPages; ++i) {
-                    //cout << "Creating page " << i << endl;
+                    //// cout  << "Creating page " << i << endl;
                     Page *newPage = new Page(i); // Create a new page
-                    //cout << "Page " << i << " created" << endl;
+                    //// cout  << "Page " << i << " created" << endl;
 
                     if (!head) {
-                        //cout << "Setting head to page " << i << endl;
+                        //// cout  << "Setting head to page " << i << endl;
                         head = newPage; // If it's the first page, set it as head
                     } else {  
-                        //cout << "Linking page " << i << " to page " << i - 1 << endl;
+                        //// cout  << "Linking page " << i << " to page " << i - 1 << endl;
                         tail->setNextPage(newPage); // Otherwise, link it to the last page
                     }
-                    //cout << "Setting tail to page " << i << endl;
+                    //// cout  << "Setting tail to page " << i << endl;
                     tail = newPage; // Update the tail to the new page
                 }
-                //cout << "initializePageList end" << endl;
+                //// cout  << "initializePageList end" << endl;
                 return head; // Return the head of the list
             };
 
               // Destructor for the PageList class
             ~PageList() {
-                //cout << "PageList destructor begin" << endl;
+                //// cout  << "PageList destructor begin" << endl;
                 Page* current = head;
                 while (current != nullptr) {
                     Page* temp = current->getNextPage(); // Assuming nextPage points to the next Page in the list
                     delete current; // Free the memory of the current Page
                     current = temp; // Move to the next Page
                 };
-                //cout << "PageList destructor end" << endl;
+                //// cout  << "PageList destructor end" << endl;
             };
 
             // Method to reset the data and offsetArray of each page in the list to initial values
             void resetPages() {
-                //cout << "resetPage begin" << endl;
+                //// cout  << "resetPage begin" << endl;
                 Page * current = head;
                 while (current != nullptr) {
                     current->emptyData();
@@ -644,12 +648,12 @@ class StorageBufferManager {
                     current->pageHeader.spaceRemaining = current->calcSpaceRemaining();
                     current = current->getNextPage();
                 }
-                //cout << "resetPage end" << endl;
+                //// cout  << "resetPage end" << endl;
             }
 
             // Method to dump the pages to a file
             bool dumpPages(ofstream& file, int& pagesWrittenToFile, FileHeader* header, PageDirectory* pageDirectory) {
-                //cout << "Dumping pages to file...\n";
+                //// cout  << "Dumping pages to file...\n";
 
                 streampos tmpOffset;
 
@@ -675,6 +679,7 @@ class StorageBufferManager {
                     int currentPageRecordCount = currentPage->getRecordCount();
                     // Add the new directory entry
                     // Assuming you have a method to handle adding and serializing the page directory entry
+                    cout << "dumpPages::Adding page directory entry. Offset: " << pageOffset << "\n";
                     if(!pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file)){
                         pageDirectory->addNewPageDirectoryNode(file);
                         pageDirectory = pageDirectory->nextDirectory;
@@ -739,7 +744,7 @@ class StorageBufferManager {
 
         // Create record from csv line
         Record createRecord(string line) {
-            cout << "createRecord begin" << endl;
+            // cout  << "createRecord begin" << endl;
             // Split line into fields
             vector<string> fields;
             stringstream ss(line);
@@ -747,7 +752,7 @@ class StorageBufferManager {
             while (getline(ss, field, ',')) {
                 fields.push_back(field);
             }
-            cout << "createRecord end" << endl;
+            // cout  << "createRecord end" << endl;
             return Record(fields);
         };
 
@@ -887,7 +892,7 @@ class StorageBufferManager {
  
         // Read csv file (Employee.csv) and add records to the (EmployeeRelation)
         void createFromFile(string csvFName) {
-            cout << "CreateFromFile: Begin createFromFile...\n";
+            // cout  << "CreateFromFile: Begin createFromFile...\n";
 
             FileHeader * header = new FileHeader();
             PageDirectory * pageDirectory = new PageDirectory();
@@ -922,33 +927,33 @@ class StorageBufferManager {
 
             // Loop through records
             if (fileStream.is_open()) {
-                cout << "CreateFromFile: File opened...\n\n\n";
+                // cout  << "CreateFromFile: File opened...\n\n\n";
                 // Get each record as a line
                 Page * currentPage = pageList->head;
                 while (getline(fileStream, line)) {
-                    //cout << "CreateFromFile: Reading line from file...\n";
+                    //// cout  << "CreateFromFile: Reading line from file...\n";
                     // Create record from line 
                     Record record = createRecord(line);
-                    //cout << "CreateFromFile: Record created from line...\nTest print: \n";
+                    //// cout  << "CreateFromFile: Record created from line...\nTest print: \n";
                     //record.print();
                     
                     // Get the size of the stringified record
                     // Stringified record is the data that will actually be added to memory
                     recordSize = record.toString().size();
-                    //cout << "CreateFromFile: Record size: " << recordSize << endl;
+                    //// cout  << "CreateFromFile: Record size: " << recordSize << endl;
 
                     // Check that record size is less than block size
                     if (recordSize > currentPage->getDataVectorSize()) {
                         cerr << "Record size exceeds block size.\n";
                         exit(1);
                     }
-                    //cout << "CreateFromFile:: Check passed:  Record size is less than size of currPage dataVector...\n";
+                    //// cout  << "CreateFromFile:: Check passed:  Record size is less than size of currPage dataVector...\n";
                     
                     // determine if there's enough room on current page:
                         // if not and not last page, begin writing to next page
                         // if not and last page, write page to file and empty page
                     spaceRemaining = currentPage->calcSpaceRemaining();
-                    //cout << "CreateFromFile: Space remaining on current page: " << spaceRemaining << endl;
+                    //// cout  << "CreateFromFile: Space remaining on current page: " << spaceRemaining << endl;
 
                     // While current page full and page not last page
                     while (spaceRemaining < recordSize && currentPage->getPageNumber() < maxPages - 1) {
@@ -966,7 +971,7 @@ class StorageBufferManager {
                     // Main memory full: no room for record on any pages
                     // Write contents to file, then 
                     if (spaceRemaining < recordSize && currentPage->getPageNumber() == maxPages - 1) {
-                        //cout << "CreateFromFile: Main memory full. Test printing contents...\n";
+                        //// cout  << "CreateFromFile: Main memory full. Test printing contents...\n";
                         //pageList->printMainMemory();
                         
                         if (!pageList->dumpPages(EmployeeRelation, pagesWrittenToFile, header, pageDirectory)) {
@@ -979,13 +984,13 @@ class StorageBufferManager {
                     // If returns false, some kind of logic error to resolve
                     else {
                         // Add record to page
-                        //cout << "CreateFromFile: Adding record to page...\n";
+                        //// cout  << "CreateFromFile: Adding record to page...\n";
                         
                         if (!currentPage->addRecord(record)) {
                             cerr << "Size mismatch. Terminating..." << endl;
                             exit(-1);
                         } 
-                        //cout << "CreateFromFile: Record added to page?\n";
+                        //// cout  << "CreateFromFile: Record added to page?\n";
                     }            
                 }
 
@@ -994,7 +999,7 @@ class StorageBufferManager {
                 if (!currentPage->checkDataEmpty()) {
 
                     // Diagnostic print
-                    //cout << "CreateFromFile: Test printing last page...\n";
+                    //// cout  << "CreateFromFile: Test printing last page...\n";
                     pageList->printMainMemory();
                    
                     // Write contents to file
