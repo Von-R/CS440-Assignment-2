@@ -143,7 +143,7 @@ class StorageBufferManager {
                     cerr << "FileHeader.serialize: Error: Failed to write file header to file.\n";
                     exit(-1);
                 }
-                cout << "\nFileHeader.serialize: Finished writing file header to file. End offset: " << file.tellp() << "\n";
+                cout << "FileHeader.serialize: Finished writing file header to file. End offset: " << file.tellp() << "\n";
                 pageDirectoryOffset = file.tellp();
             }   
 
@@ -156,10 +156,13 @@ class StorageBufferManager {
                 cout << "\nFileHeader.deserialize: Reading file header from file at offset: " << file.tellg() << "\n";
                 // Read the total number of pages from the file
                 file.read(reinterpret_cast<char*>(&totalNumberOfPages), sizeof(totalNumberOfPages));
+                cout << "FileHeader.deserialize: totalNumberOfPages: " << totalNumberOfPages << "\n";
                 // Read the page directory size from the file
                 file.read(reinterpret_cast<char*>(&pageDirectorySize), sizeof(pageDirectorySize));
+                cout << "FileHeader.deserialize: pageDirectorySize: " << pageDirectorySize << "\n";
                 // Read the offset to the page directory from the file
                 file.read(reinterpret_cast<char*>(&pageDirectoryOffset), sizeof(pageDirectoryOffset));
+                cout << "FileHeader.deserialize: pageDirectoryOffset: " << pageDirectoryOffset << "\n";
                 if (file.fail()) {
                     cerr << "FileHeader.deserialize: Error: Failed to read file header from file.\n";
                     exit(-1);
@@ -229,13 +232,19 @@ class StorageBufferManager {
 
                 // Write the entry count and next page directory offset first
                 file.write(reinterpret_cast<const char*>(&entryCount), sizeof(entryCount));
+                cout << "PageDirectory.serialize: entryCount: " << entryCount << "\n";
                 file.write(reinterpret_cast<const char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
+                cout << "PageDirectory.serialize: nextPageDirectoryOffset: " << nextPageDirectoryOffset << "\n";
 
                 // Then write each entry
+                cout << "PageDirectory.serialize: Writing page directory entries to file: \n";
                 for (const auto& entry : entries) {
                     file.write(reinterpret_cast<const char*>(&entry.pageOffset), sizeof(entry.pageOffset));
+                    cout << "OS: " << entry.pageOffset << ", ";
                     file.write(reinterpret_cast<const char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
+                    cout << "RIP: " << entry.recordsInPage << ", ";
                 }
+                cout << "\n";
 
                 if (file.fail()) {
                     cerr << "PageDirectory.serialize: Error: Failed to write page directory to file.\n";
@@ -255,15 +264,20 @@ class StorageBufferManager {
                 std::cout << "PageDirectory.deserialize: Start reading PageDirectory at offset: " << offset << std::endl;
                 file.seekg(offset);
                 file.read(reinterpret_cast<char*>(&entryCount), sizeof(entryCount));
+                std::cout << "PageDirectory.deserialize: entryCount: " << entryCount << std::endl;
                 file.read(reinterpret_cast<char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
+                std::cout << "PageDirectory.deserialize: nextPageDirectoryOffset: " << nextPageDirectoryOffset << std::endl;
 
                 // Resize entries vector based on entryCount
                 entries.resize(entryCount);
 
                 // Then read each entry
+                std::cout << "PageDirectory.deserialize: Reading page directory entries from file: \n";
                 for (auto& entry : entries) {
                     file.read(reinterpret_cast<char*>(&entry.pageOffset), sizeof(entry.pageOffset));
+                    std::cout << "OS: " << entry.pageOffset << ", ";
                     file.read(reinterpret_cast<char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
+                    std::cout << "RIP: " << entry.recordsInPage << ", ";
                 }
 
                 if (file.fail()) {
