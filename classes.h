@@ -171,19 +171,22 @@ class StorageBufferManager {
             }
 
             // Add a new page directory entry
-            bool addPageDirectoryEntry(int offset, int records, std::ofstream& file) {
+            int addPageDirectoryEntry(int offset, int records, std::ofstream& file) {
                 // If directory is full, write to file and return false: create new dir
                 if (entryCount >= entries.size()) {
                     serialize(file);
                     cerr << "Error: Page directory is full. Cannot add new entry.\n" <<
                     "Create and link new page directory instead.\n";
-                    return false;
+                    return -1;
+                } else if (offset == -1 or records == 0) {
+                    cerr << "Error: Invalid offset or record count. Cannot add new entry.\n";
+                    return 0;
                 }
                 cout << "addPageDirectoryEntry:: Adding new page directory entry. Offset: " << offset << "\n";
                 entries[entryCount].pageOffset = offset;
                 entries[entryCount].recordsInPage = records;
                 entryCount++;
-                return true;
+                return;
             }
 
             // Function to serialize the PageDirectory to a file
@@ -671,7 +674,7 @@ class StorageBufferManager {
                 while (currentPage != nullptr) {
 
                     // Empty page. End loop.
-                    if (currentPage->dataVectorEmpty()) {
+                    if (currentPage->dataVectorEmpty() or currentPage->recordCount == 0) {
                         cout << "dumpPages:: Page " << currentPage->getPageNumber() << " is empty. breaking...\n";
                         break;
                     }
@@ -696,7 +699,8 @@ class StorageBufferManager {
                     
                     // Update the page directory with new entry
                     cout << "dumpPages::Adding page directory entry. Offset: " << pageOffset << "\n";
-                    while (!pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file)){
+                    while (pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file) == -1){
+                        cout << "dumpPages::Page directory is full. Creating new page directory node.\n";
                         // If the page directory is full, create a new page directory node
                         pageDirectory->addNewPageDirectoryNode(file);
                         // Advance node to the new page directory
