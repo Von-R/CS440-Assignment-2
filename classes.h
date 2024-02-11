@@ -186,7 +186,7 @@ class StorageBufferManager {
                 entries[entryCount].pageOffset = offset;
                 entries[entryCount].recordsInPage = records;
                 entryCount++;
-                return;
+                return 1;
             }
 
             // Function to serialize the PageDirectory to a file
