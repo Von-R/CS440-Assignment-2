@@ -572,10 +572,12 @@ class StorageBufferManager {
                     int startOffset = offsetArray[i];
                     int endOffset = offsetArray[i + 1]; // Get the end offset for the current segment
 
+                    cout << "writeRecordsToFile::startOffset: " << startOffset << " endOffset: " << endOffset << "\n";
                     // Write each character in the range [startOffset, endOffset) to the file
                     for (int j = startOffset; j < endOffset; ++j) {
                         if (data[j] != sentinelValue) {
                             cout << data[j];   
+                            cout << data[j];
                             outputFile.write(reinterpret_cast<const char*>(&data[j]), sizeof(data[j]));
                         }
                     }
@@ -667,7 +669,8 @@ class StorageBufferManager {
                 while (currentPage != nullptr) {
                     // Write page contents to file, get offset pointing to beginning of free space
                     pageOffset = currentPage->writeRecordsToFile(file, currentPage->offsetSize());
-                    cout << "dumpPages::pageOffset: " << pageOffset << "\n";
+                    cout << "dumpPages::pageOffset: " << pageOffset <<
+                    "offsetSize: " << currentPage->offsetSize() <<  "\n";
                     
                     // Error check: If pageOffset is negative stream failed to open: print error and return false
                     if (pageOffset < 0){
