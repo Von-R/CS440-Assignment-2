@@ -179,7 +179,7 @@ class StorageBufferManager {
                     "Create and link new page directory instead.\n";
                     return -1;
                 } else if (offset == -1 or records == 0) {
-                    cerr << "Error: Invalid offset or record count. Cannot add new entry.\n";
+                    cerr << "addPageDirectoryEntry:: Error: Invalid offset or record count. Cannot add new entry.\n";
                     return 0;
                 }
                 cout << "addPageDirectoryEntry:: Adding new page directory entry. Offset: " << offset << "\n";
@@ -531,7 +531,7 @@ class StorageBufferManager {
 
             // Ensure the insertion does not exceed the vector's predefined max size
             if (offsetOfNextRecord + recordSize <= data.size()) {
-                //// cout  << "addRecord:: Adding record to page: " << this->pageNumber << "\n";
+                cout  << "addRecord:: Adding record to page: " << this->pageNumber << "\n";
                 std::copy(recordString.begin(), recordString.end(), data.begin() + offsetOfNextRecord);
                 pageHeader.recordsInPage += 1;
                 //// cout  << "addRecord:: spaceRemaining - recordSize: " << pageHeader.spaceRemaining << " - " << recordSize << " = " << pageHeader.spaceRemaining - recordSize << endl;
