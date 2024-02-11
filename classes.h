@@ -783,9 +783,11 @@ class StorageBufferManager {
 
             // Loop through page directories
             while (pageDirectory != nullptr) {
+                cout << "searchID:: Looping through page directories...\n";
 
                 // Loop through page directory entries
                 for (int entryIndex = 0; entryIndex < pageDirectory->entryCount - 2; entryIndex++) {
+                    cout << "searchID:: Looping through page directory entries...\n";
                     
                     // Break if pageOffset is invalid/empty
                     if (pageDirectory->entries[entryIndex].pageOffset == -1) {
@@ -794,9 +796,12 @@ class StorageBufferManager {
 
                     begIndex = pageDirectory->entries[entryIndex].pageOffset;
                     endIndex = pageDirectory->entries[entryIndex + 1].pageOffset;
+                    cout << "searchID:: begIndex: " << begIndex << endl;
+                    cout << "searchID:: endIndex: " << endIndex << endl;
 
                     // If last page, load then search
                     if (currentPage->getNextPage() == nullptr) {
+                        cout << "searchID:: Last page reached. Loading and searching...\n";
                         loadMemoryPage(dataFile, currentPage, begIndex, endIndex);
                         searchMainMemory(pageList->head, searchID);
                         pageList->resetPages();
@@ -805,6 +810,7 @@ class StorageBufferManager {
                     // Otherwise just load the page
                     // Advance to next page
                     else if (currentPage != nullptr) {
+                        cout << "searchID:: Loading and advancing to next page...\n";
                         // Load a single page, advance to next page
                         loadMemoryPage(dataFile, currentPage, begIndex, endIndex);
                         currentPage = currentPage->nextPage;
@@ -814,6 +820,7 @@ class StorageBufferManager {
                     }
                 }
                 // Move to the next page directory
+                cout << "searchID:: Moving to next page directory...\n";
                 pageDirectory = pageDirectory->nextDirectory;
             }
             cout << "searchID end" << endl;
