@@ -657,6 +657,7 @@ class StorageBufferManager {
                     current->emptyData();
                     current->emptyOffsetArray();
                     current->pageHeader.recordsInPage = 0;
+                    current->recordCount = 0;
                     current->pageHeader.spaceRemaining = current->calcSpaceRemaining();
                     current = current->getNextPage();
                 }
@@ -799,7 +800,7 @@ class StorageBufferManager {
         }
 
         void searchID(int searchID){
-            cout << "searchID begin" << endl;
+            cout << "\nsearchID begin" << endl;
             cout << "Searching for Record ID: " << searchID << endl;
             // instantiate objects
             FileHeader * header = new FileHeader();
@@ -835,11 +836,11 @@ class StorageBufferManager {
             // Loop through page directories
             while (pageDirectory != nullptr) {
                 cout << "searchID:: Looping through page directories...\n";
-                cout << "searchID:: entryCount: " << pageDirectory->entryCount << "\n";
+                cout << "searchID:: entryCount: " << pageDirectory->entryCount << " pages in directory\n";
 
                 // Loop through page directory entries
                 for (int entryIndex = 0; entryIndex < pageDirectory->entryCount - 2; entryIndex++) {
-                    cout << "searchID:: Looping through page directory entries...\n";
+                    cout << "searchID:: Looping through page directory entries...\n\n";
                     
                     // Break if offset for page referenced in page directory is sentinel value / uninitialized
                     if (pageDirectory->entries[entryIndex].pageOffset == -1) {
