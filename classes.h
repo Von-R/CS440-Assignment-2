@@ -890,7 +890,7 @@ class StorageBufferManager {
         }
 
         void searchID(int searchID){
-            cout << "\nsearchID begin" << endl;
+            cout << "\n\n\n\nsearchID begin" << endl;
             cout << "Searching for Record ID: " << searchID << endl;
             // instantiate objects
             FileHeader * header = new FileHeader();
@@ -981,9 +981,7 @@ class StorageBufferManager {
         // There may be duplicates, so search the entire file
         void searchMainMemory(Page* page, int searchID) {
             cout << "searchMainMemory begin:: searching Page " << page->pageNumber << endl;
-            if (page == nullptr) {
-                return; // Base case: Reached the end of the page list
-            }
+            
 
             std::vector<Record> matchingRecords;
             std::string recordsString = std::string(page->data.begin(), page->data.end());
@@ -1003,13 +1001,18 @@ class StorageBufferManager {
                 cout << "Record ID: " << fields[0].substr(1) << endl;
 
                 if (fields.size() == 4 && std::stoi(fields[0].substr(1)) == searchID) {
+                    cout << "Matching record found: " << fields[0].substr(1) << endl;
                     Record foundRecord(fields);
                     foundRecord.print(); // Assuming Record::print() is a method to print the record details
                 }
             }
 
             // Recursive call with the next page
-            searchMainMemory(page->getNextPage(), searchID);
+            if (page->getNextPage() == nullptr) {
+                return; // Base case: Reached the end of the page list
+            } else {
+                searchMainMemory(page->getNextPage(), searchID);
+            }
             cout << "searchMainMemory end" << endl;
         }
 
