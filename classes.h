@@ -144,6 +144,8 @@ class StorageBufferManager {
 
         struct PageDirectory {
             std::vector<PageDirectoryEntry> entries; // Holds entries for each page
+            static int directoryCount;
+            int directoryID; // Identifier for the directory
             int entryCount; // Keep track of valid entries so far. Used for add indexing
             int nextPageDirectoryOffset; // File offset to the next directory, or -1 if this is the last
             PageDirectory * nextDirectory; // Pointer to the next directory in the list
@@ -151,11 +153,20 @@ class StorageBufferManager {
 
             // Default constructor
             PageDirectory() : nextPageDirectoryOffset(-1), entries(5), entryCount(0), nextDirectory(nullptr) {
-                pageDirectorySize = (3 * sizeof(int)) + (entries.capacity() * sizeof(PageDirectoryEntry));
+                pageDirectorySize = (4 * sizeof(int)) + (entries.capacity() * sizeof(PageDirectoryEntry));
+                directoryID = ++directoryCount;
             }
 
             int getPageDirectorySize() {
                 return pageDirectorySize;
+            }
+
+            void incrementDirectoryID() {
+                directoryID++;
+            }
+
+            int getDirectoryID() {
+                return directoryID;
             }
 
             void addNewPageDirectoryNode(ofstream & file, FileHeader * header) {
@@ -165,6 +176,7 @@ class StorageBufferManager {
                 this->nextPageDirectoryOffset = file.tellp();
                 cout << "addNewPageDirectoryNode:: nextPageDirectoryOffset from tellp: " << nextPageDirectoryOffset << "\n";
                 this->nextDirectory = newPageDirectory;
+                this->nextDirectory->incrementDirectoryID();
                 header->updateDirectorySize();
             }
 
@@ -214,6 +226,7 @@ class StorageBufferManager {
                 std::cout << "Start writing PageDirectory at offset: " << file.tellp() << std::endl;
 
                 // Write the entry count and next page directory offset first
+                file.write(reinterpret_cast<const char*>(&directoryID), sizeof(directoryID));
                 file.write(reinterpret_cast<const char*>(&entryCount), sizeof(entryCount));
                 cout << "PageDirectory.serialize: entryCount: " << entryCount << "\n";
                 file.write(reinterpret_cast<const char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
@@ -251,6 +264,7 @@ class StorageBufferManager {
                 // Read the entry count and next page directory offset first
                 std::cout << "PageDirectory.deserialize: Start reading PageDirectory at offset: " << offset << std::endl;
                 file.seekg(offset);
+                file.read(reinterpret_cast<char*>(&directoryID), sizeof(directoryID));
                 file.read(reinterpret_cast<char*>(&entryCount), sizeof(entryCount));
                 std::cout << "PageDirectory.deserialize: entryCount: " << entryCount << std::endl;
                 file.read(reinterpret_cast<char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
