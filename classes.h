@@ -899,7 +899,11 @@ class StorageBufferManager {
             cout << "loadMemoryPage:: Reading page " << page->getPageNumber() << " from file. " << size << " bytes; offset: " << beginOffset << ".\n";
             for (int i = 0; i < size; i++) {
                 file.read(reinterpret_cast<char*>(&page->data[i]), sizeof(page->data[i]));
-                cout << page->data[i];
+                if (page->getPageNumber() == 0) {
+                    cout << "(" << i << ": " << page->data[i] << ")";
+                } else {
+                    cout << page->data[i];
+                }
             }
             cout << "\n\nloadMemoryPage end" << endl;
         }
@@ -993,9 +997,13 @@ class StorageBufferManager {
             cout << "searchID end" << endl;
 
             // Print matching records
-            cout << "Matching records found for Search ID: " << searchID << ".\n\n";
-            for (auto record : matchingRecords) {
-                record.print();
+            if (matchingRecords.empty()) {
+                cout << "No matching records found for Search ID: " << searchID << ".\n";
+            } else {
+                cout << "Matching records found for Search ID: " << searchID << ".\n\n";
+                for (auto record : matchingRecords) {
+                    record.print();
+                }
             }
         };
 
