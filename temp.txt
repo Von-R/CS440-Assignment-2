@@ -1,5 +1,5 @@
 Current issues:
 
-Deserialized:
-mismatch between fileHeader->totalNumberOfPages and number of entries in PageDirectory
-FileHeader->pageDirectorySize == 3. Should only be one?
+implement expansion of pageDirectory linked list structure
+
+implement program termination and destruction of memory objects/close streams/etc. 

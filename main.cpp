@@ -32,6 +32,8 @@ int main(int argc, char* const argv[]) {
         cout << "Enter an ID to lookup: ";
         cin >> input;
         if (input == "q") {
+            manager.exitProgram();
+            cout << "Goodbye!" << endl;
             break;
         }
         int id = stoi(input);
