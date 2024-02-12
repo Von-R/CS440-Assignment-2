@@ -898,7 +898,7 @@ class StorageBufferManager {
                 file.read(reinterpret_cast<char*>(&page->data[i]), sizeof(page->data[i]));
                 cout << page->data[i];
             }
-            cout << "loadMemoryPage end" << endl;
+            cout << "\n\nloadMemoryPage end" << endl;
         }
 
         void searchID(int searchID){
