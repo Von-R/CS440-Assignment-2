@@ -1160,6 +1160,9 @@ class StorageBufferManager {
                         if (!currentPage->addRecord(record)) {
                             cerr << "Error: Size mismatch on NEXT PAGE ADD. Terminating..." << endl;
                             exit(-1);
+                        } else {
+                            cout << "Record added to next page: " << record.toString() << endl;
+                        
                         }
                     }
                     // Main memory full: no room for record on any pages
@@ -1183,7 +1186,9 @@ class StorageBufferManager {
                         if (!currentPage->addRecord(record)) {
                             cerr << "Size mismatch. Terminating..." << endl;
                             exit(-1);
-                        } 
+                        } else {
+                            cout << "Final record of partially filled page added: " << record.toString() << endl;
+                        }
                         //// cout  << "CreateFromFile: Record added to page?\n";
                     }            
                 }
