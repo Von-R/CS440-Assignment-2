@@ -595,7 +595,7 @@ class StorageBufferManager {
         }
 
         // Method to add a record to the page
-        bool addRecord(const Record& record) {
+        bool addRecord(const Record& record, bool lastRecordInPage) {
             cout << "addRecord:: begin\n";
             auto recordString = record.toString();
             
@@ -625,7 +625,10 @@ class StorageBufferManager {
                 pageHeader.spaceRemaining -= recordSize;
                 //offsetArray.push_back(offsetOfNextRecord);
 
-                if (!addOffsetToFirstSentinel(offsetArray, offsetOfNextRecord)) {
+                if (lastRecordInPage) {
+                    cout << "addRecord:: Last record in page. Append offset to end of record to offset array.\n";
+                    offsetArray.push_back(offsetOfNextRecord + recordSize);
+                } else if (!addOffsetToFirstSentinel(offsetArray, offsetOfNextRecord)) {
                     std::cerr << "addRecord:: Error: Unable to add offset to offsetArray.\n";
                     return false;
                 }
