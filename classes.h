@@ -46,8 +46,6 @@ public:
 
 class StorageBufferManager {
 
-    
-
     public:
         struct FileHeader;
         struct PageDirectory;
@@ -673,6 +671,7 @@ class StorageBufferManager {
         class PageList {
             public:
             Page *head = nullptr;
+            StorageBufferManager * manager;
             //static const int maxPages = 3; 
             // Constructor for the PageList class
             // Head is initialized as page 0 and linked list created from it
@@ -737,6 +736,7 @@ class StorageBufferManager {
             bool dumpPages(ofstream& file, int& pagesWrittenToFile, FileHeader* header, PageDirectory* pageDirectory) {
                 //// cout  << "Dumping pages to file...\n";
 
+                //FileHeader * fileHeader = manager->fileHeader;
                 streampos tmpOffset;
 
                 if (!file.is_open()) {
@@ -777,11 +777,11 @@ class StorageBufferManager {
                     
                     // Update the page directory with new entry
                     
-                    cout << "dumpPages::Adding page directory entry. Offset: " << pageOffset << "\n";
+                    cout << "dumpPages::Adding page directory entry. Offset: " << pageOffset << " for page " << currentPage->getPageNumber() << ". \n";
                     while (pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file) == -1){
                         cout << "dumpPages::Page directory is full. Creating new page directory node.\n";
                         // If the page directory is full, create a new page directory node
-                        pageDirectory->addNewPageDirectoryNode(file, header);
+                        pageDirectory->addNewPageDirectoryNode(file, fileHeader);
                         // Advance node to the new page directory
                         pageDirectory = pageDirectory->nextDirectory;
                         // Try again to add the page directory entry
@@ -808,7 +808,7 @@ class StorageBufferManager {
                 file.seekp(0);
                 header->updateTotalNumberOfPages(pagesWrittenToFile);
                 
-                header->serialize(file);
+                fileHeader->serialize(file);
                 pageDirectory->serialize(file);
                 file.seekp(tmpOffset);
                 resetPages();
