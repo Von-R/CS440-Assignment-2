@@ -982,18 +982,25 @@ class StorageBufferManager {
         void searchMainMemory(Page* page, int searchID) {
             cout << "searchMainMemory begin:: searching Page " << page->pageNumber << endl;
             
-
+            cout << "searchMainMemory:: Initializing records variables...\n";
             std::vector<Record> matchingRecords;
             std::string recordsString = std::string(page->data.begin(), page->data.end());
             std::istringstream recordsStream(recordsString);
             std::string record;
 
+            cout << "searchMainMemory:: Looping through records...\n";
             while (std::getline(recordsStream, record, '%')) {
-                if (record.empty()) continue; // Skip empty records
+                if (record.empty()){ 
+                    cout << "searchMainMemory:: Empty record found. Investigate. Skipping...\n";
+                    continue; // Skip empty records
+                }
 
+                cout << "searchMainMemory:: Initializing individual record variables...\n";
                 std::istringstream recordStream(record);
                 std::vector<std::string> fields;
                 std::string field;
+
+                cout << "searchMainMemory:: Looping through fields...\n";
                 while (std::getline(recordStream, field, '#')) {
                     fields.push_back(field);
                 }
