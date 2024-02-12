@@ -530,7 +530,7 @@ class StorageBufferManager {
 
             for (size_t i = 0; i <  elementsInOffsetArray; ++i) {
                 // Validate the current offset
-                if (offsetArray[i] < 0 || offsetArray[i] >= static_cast<int>(dataSize(data))) {
+                if (offsetArray[i] < 0 or offsetArray[i] >= static_cast<int>(dataSize(data))) {
                     cerr << "Error: Invalid offset " << offsetArray[i] << " at offsetArray index " << i << ". Skipping record.\n";
                     continue;
                 }
@@ -897,10 +897,11 @@ class StorageBufferManager {
 
             // Read the page from the file in page in memory
             cout << "loadMemoryPage:: Reading page " << page->getPageNumber() << " from file. " << size << " bytes; offset: " << beginOffset << ".\n";
+            cout << "loadMemoryPage:: Current file offset: " << file.tellg() << ".\n";
             for (int i = 0; i < size; i++) {
                 file.read(reinterpret_cast<char*>(&page->data[i]), sizeof(page->data[i]));
                 if (page->getPageNumber() == 0) {
-                    cout << "(" << i << ": " << page->data[i] << ")";
+                    cout << "(" << i + beginOffset << ": " << page->data[i] << ")";
                 } else {
                     cout << page->data[i];
                 }
