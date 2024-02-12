@@ -1091,7 +1091,7 @@ class StorageBufferManager {
             PageDirectory * currentPageDirectory = pageDirectoryHead;
 
             cout << "createFromFile: FileHeader size: " << sizeof(*header) << endl;
-            cout << "createFromFile: PageDirectory size: " << sizeof(*pageDirectoryHead) << endl;
+            cout << "createFromFile: PageDirectory size: " << pageDirectoryHead->getPageDirectorySize() << endl;
 
             // initialize variables
             // Offset of record
