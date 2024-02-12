@@ -46,10 +46,12 @@ public:
 
 class StorageBufferManager {
 
-    struct FileHeader;
-    struct PageDirectory;
+    
 
     public:
+        struct FileHeader;
+        struct PageDirectory;
+
         FileHeader * fileHeader;                   // File header object
         PageDirectory * pageDirectoryHead;                   // File header object
         const static int BLOCK_SIZE = 4096;     // Max size of a block in main memory
