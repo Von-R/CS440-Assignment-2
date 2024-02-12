@@ -256,6 +256,9 @@ class StorageBufferManager {
                 // Then write each entry
                 cout << "PageDirectory.serialize: Writing page directory entries to file: \n";
                 for (const auto& entry : entries) {
+                    if (entry.pageOffset == -1) {
+                        break;
+                    }
                     file.write(reinterpret_cast<const char*>(&entry.pageOffset), sizeof(entry.pageOffset));
                     cout << "OS: " << entry.pageOffset << ", ";
                     file.write(reinterpret_cast<const char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
@@ -1161,7 +1164,7 @@ class StorageBufferManager {
                             cerr << "Error: Size mismatch on NEXT PAGE ADD. Terminating..." << endl;
                             exit(-1);
                         } else {
-                            cout << "\nRecord added to next page, page: " << currentPage->getPageNumber() << ": " << record.toString() << "\n";
+                            cout << "\nRecord added to next page, page: " << currentPage->getPageNumber() << ": \n" << record.toString() << "\n";
                         
                         }
                     }
@@ -1174,7 +1177,10 @@ class StorageBufferManager {
                         if (!pageList->dumpPages(EmployeeRelation, pagesWrittenToFile, header, currentPageDirectory)) {
                             cerr << "Error: Failure to copy main memory contents to file. Stream not open." << endl;
                             exit(-1);
+                        } else {
+                            cout << "createFromFile: Main memory full. Dumping pages to file...\n";
                         }
+
                         currentPage = pageList->head;
                     }
                     // There's room on the current page. Add record
@@ -1187,7 +1193,7 @@ class StorageBufferManager {
                             cerr << "Size mismatch. Terminating..." << endl;
                             exit(-1);
                         } else {
-                            cout << "\nRecord added to page " << currentPage->getPageNumber() << ": " << record.toString() << "\n";
+                            cout << "\nRecord added to page " << currentPage->getPageNumber() << ": \n" << record.toString() << "\n";
                         }
                         //// cout  << "CreateFromFile: Record added to page?\n";
                     }            
@@ -1205,6 +1211,8 @@ class StorageBufferManager {
                     if (!pageList->dumpPages(EmployeeRelation, pagesWrittenToFile, header, currentPageDirectory)) {
                             cerr << "Error: Failure to copy main memory contents to file. Stream not open." << endl;
                             exit(-1);
+                        } else {
+                            cout << "createFromFile: Last of records read into main memory. Dumping records to file...\n";
                         }
                     // Reset to head node
                     currentPage = pageList->head;
