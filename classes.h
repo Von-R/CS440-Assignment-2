@@ -880,11 +880,23 @@ class StorageBufferManager {
                 exit(-1);
             }
 
-            file.seekg(beginOffset);
+            // test stuff
+            // Calculate the size of the chunk to read
+            int size = endOffset - beginOffset;
+            if (size <= 0) {
+                std::cerr << "Invalid offsets provided.\n";
+                return;
+            }
+
+            file.seekg(beginOffset, std::ios::beg);
+
+
 
             // Read the page from the file in page in memory
-            for (int i = 0; i < endOffset - beginOffset; i++) {
+            cout << "loadMemoryPage:: Reading page " << page->getPageNumber() << " from file. " << size << " bytes; offset: " << beginOffset << ".\n";
+            for (int i = 0; i < size; i++) {
                 file.read(reinterpret_cast<char*>(&page->data[i]), sizeof(page->data[i]));
+                cout << page->data[i];
             }
             cout << "loadMemoryPage end" << endl;
         }
