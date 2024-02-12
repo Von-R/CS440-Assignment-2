@@ -114,7 +114,7 @@ class StorageBufferManager {
             // Additional metadata as needed, such as record schema information
 
             // Default constructor
-            FileHeader() : totalNumberOfPages(0), pageDirectoryOffset(sizeof(FileHeader)), pageDirectorySize(0) {}
+            FileHeader() : totalNumberOfPages(0), pageDirectoryOffset(sizeof(FileHeader)), pageDirectorySize(1) {}
 
             void updateTotalNumberOfPages(int newTotal) {
                 totalNumberOfPages = newTotal;
@@ -754,8 +754,9 @@ class StorageBufferManager {
                 int pageOffset;
 
                 int dummyVal;
-                while (currentPage != nullptr) {
 
+                while (currentPage != nullptr) {
+                    pageOffset = file.tellp();
                     // Empty page. End loop.
                     if (currentPage->dataVectorEmpty() /* or currentPage->recordCount == 0 */) {
                         cout << "dumpPages:: Page " << currentPage->getPageNumber() << " is empty. breaking...\n";
@@ -781,7 +782,7 @@ class StorageBufferManager {
                     int currentPageRecordCount = currentPage->getRecordCount();
                     
                     // Update the page directory with new entry
-                    pageOffset = file.tellp();
+                    
                     cout << "dumpPages::Adding page directory entry. Offset: " << pageOffset << "\n";
                     while (pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file) == -1){
                         cout << "dumpPages::Page directory is full. Creating new page directory node.\n";
