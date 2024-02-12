@@ -40,27 +40,60 @@ public:
             return "$" + to_string(id) + "#" + name + "#" + bio + "#" + to_string(manager_id) + "%";
         }
 
+    
 };
+
+// Reconstruct fields vector from stringified records on file
+// Used to reconstruct records from file
+inline vector<string> stringToVector(const string& recordString) {
+    // cout << "stringToVector begin" << endl;
+        vector<string> result;
+        stringstream ss(recordString);
+        string item;
+
+        while (getline(ss, item, '#')) {
+            result.push_back(item);
+        }
+
+        // Handle the trailing newline if present
+        if (!result.empty() && !result.back().empty() && result.back().back() == '\n') {
+            result.back().erase(result.back().size() - 1);
+        }
+
+        cout << "stringToVector end" << endl;
+        return result;
+    }
+
 
 class StorageBufferManager {
 
     public:
-        // Initialize the block size allowed in main memory according to the question 
-        const static int BLOCK_SIZE = 4096;     // Max size of a block in main memory
-        const static int maxPages = 3;          // 3 pages in main memory at most 
-        int pagesWrittenToFile = 0;             // Number of pages written to file. Track so that written pages are indexed by page number.
-        tuple<std::vector<int>, unsigned long long> static offsetVectorParameters;
+        // initialize the  block size allowed in main memory according to the question 
+        const static int BLOCK_SIZE = 4096; 
+        const static int maxPages = 3; // 3 pages in main memory at most 
+        fstream EmployeeRelation;
+        // You may declare variables based on your need 
+        int numRecords; // number of records in the file
+        int pagesWrittenToFile = 0; // number of pages written to file. Track so that written pages are indexed by page number.
+        tuple<std::vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializationResults;
+        int static maxPagesOnDisk;
     
+
+
         StorageBufferManager(string NewFileName) { 
+            // cout << "StorageBufferManager constructor begin" << endl;
+
+            //initialize your variables
+            int maxPages = 3; // 3 pages in main memory at most 
             /*
-                'offsetVectorParameters'contains:
-                    Vector containing record offsets. Initialized to -1. Size: Max possible records per page given smallest record in input file
-                    Size of the offsetArray
-                    Total count of all records
+                This variable contains:
+                    offset array of size maxRecords, filled with 0's
+                    the size of the offsetArray
+                    the total count of all records
                     the max size of record, used later to calc min number of pages needed
             
             */
-            offsetVectorParameters = initializeValues();
+            initializationResults = initializeValues();
             
             // cout << "StorageBufferManager constructor end" << endl;
         };
@@ -155,7 +188,7 @@ class StorageBufferManager {
             int pageDirectorySize;
 
             // Default constructor
-            PageDirectory() : nextPageDirectoryOffset(-1), entries(100), entryCount(0), nextDirectory(nullptr) {
+            PageDirectory() : nextPageDirectoryOffset(-1), entries(5), entryCount(0), nextDirectory(nullptr) {
                 pageDirectorySize = (3 * sizeof(int)) + (entries.capacity() * sizeof(PageDirectoryEntry));
             }
 
@@ -274,7 +307,7 @@ class StorageBufferManager {
             }
         };
 
-         tuple<std::vector<int>, unsigned long long> static initializeValues() {
+         tuple<std::vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializeValues() {
                     // cout << "initializeValues begin" << endl;
 
                     int fileCount = 0;
@@ -330,7 +363,8 @@ class StorageBufferManager {
                     //         the total count of all records
                     //         the max size of record, used later to calc min number of pages needed
                     // cout << "initializeValues end" << endl;
-                    return make_tuple(std::vector<int>(maxRecords, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int));
+                    return make_tuple(std::vector<int>(maxRecords, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(fileCount), 
+                    static_cast<unsigned long long>(maxRecordSize));
 
 
                 };
@@ -341,7 +375,7 @@ class StorageBufferManager {
         int pageNumber; // Identifier for the page
         Page *nextPage; // Pointer to the next page in the list
         // These are static members of the Page class because the offsetArray and dataVector sizes will be shared by all instances of the Page class
-        int static offsetVectorSize;
+        int static offsetArraySize;
         int static dataVectorSize;
         static const char sentinelValue = '\0'; // Sentinel value to indicate empty space in the data vector
         vector<int> offsetArray; // Vector to store the offsets of the records in the page
@@ -393,16 +427,16 @@ class StorageBufferManager {
             //cout << "Page constructor begin" << endl;
 
             // Initialize the offsetArray to its maximum potential size first; sentinel value is -1
-            offsetArray = get<0>(offsetVectorParameters); // Instance-specific offsetArray is initialized with 0's
+            offsetArray = get<0>(initializationResults); // Instance-specific offsetArray is initialized with 0's
             //cout << "Value of offsetArray[0]: " << offsetArray[0] << endl;
 
             
             // size of offset array, 2nd element of tuple returned by initializeValues
-            offsetVectorSize = get<1>(offsetVectorParameters); // Update this based on actual logic
-            //cout << "Value of offsetVectorSize: " << offsetVectorSize << endl;
+            offsetArraySize = get<1>(initializationResults); // Update this based on actual logic
+            //cout << "Value of offsetArraySize: " << offsetArraySize << endl;
 
             // Size of data vector; calculated based on the size of the offset array and the size of the page header
-            dataVectorSize = page_size - offsetVectorSize - sizeof(PageHeader);
+            dataVectorSize = page_size - offsetArraySize - sizeof(PageHeader);
             //cout << "Value of dataVectorSize: " << dataVectorSize << endl;
             // Initialize data vector to its maximum potential size first; sentinel value is -1
             data.resize(dataVectorSize, sentinelValue);
@@ -436,8 +470,8 @@ class StorageBufferManager {
         // Method to calculate the space remaining in the page
         int calcSpaceRemaining() {
             // cout  << "calcSpaceRemaining entered:" << endl;
-            // Calculate the space remaining based on current usage. PageHeader, page_size and offsetVectorSize are all static members/fixed
-            int newSpaceRemaining = page_size - dataSize(data, sentinelValue) - offsetVectorSize - sizeof(PageHeader);
+            // Calculate the space remaining based on current usage. PageHeader, page_size and offsetArraySize are all static members/fixed
+            int newSpaceRemaining = page_size - dataSize(data, sentinelValue) - offsetArraySize - sizeof(PageHeader);
             // cout  << "calcSpaceRemaining::newSpaceRemaining: " << newSpaceRemaining << endl;
             return newSpaceRemaining;
         }
@@ -447,7 +481,7 @@ class StorageBufferManager {
         int getPageNumber() {return pageNumber;}
         Page * getNextPage() {return nextPage;}
         int getDataSize() {return data.size();}
-        int getOffsetArraySize() {return offsetVectorSize;}
+        int getOffsetArraySize() {return offsetArraySize;}
         int getDataVectorSize() {return dataVectorSize;}
         bool checkDataEmpty() {return data.empty();}
         // Getter method to return the next page in the list
