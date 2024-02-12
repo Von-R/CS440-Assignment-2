@@ -1127,6 +1127,7 @@ class StorageBufferManager {
                 // cout  << "CreateFromFile: File opened...\n\n\n";
                 // Get each record as a line
                 Page * currentPage = pageList->head;
+                bool lastRecordInPage = false;
                 while (getline(fileStream, line)) {
                     //// cout  << "CreateFromFile: Reading line from file...\n";
                     // Create record from line 
@@ -1160,7 +1161,7 @@ class StorageBufferManager {
                         // Recalculate space remaining on new page
                         spaceRemaining = currentPage->calcSpaceRemaining();
                         // Add record to new page
-                        if (!currentPage->addRecord(record)) {
+                        if (!currentPage->addRecord(record, false)) {
                             cerr << "Error: Size mismatch on NEXT PAGE ADD. Terminating..." << endl;
                             exit(-1);
                         } else {
@@ -1189,7 +1190,7 @@ class StorageBufferManager {
                         // Add record to page
                         //// cout  << "CreateFromFile: Adding record to page...\n";
                         
-                        if (!currentPage->addRecord(record)) {
+                        if (!currentPage->addRecord(record, true)) {
                             cerr << "Size mismatch. Terminating..." << endl;
                             exit(-1);
                         } else {
