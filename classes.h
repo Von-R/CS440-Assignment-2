@@ -662,7 +662,9 @@ class StorageBufferManager {
 
                 for (int i = 0; i < offsetSize - 1; ++i) { // -1 to prevent accessing beyond the last valid index
                     int startOffset = offsetArray[i];
+                    cout << "\nwriteRecordsToFile::startOffset: " << startOffset << ". offsetArray[" << i << "].\n";
                     int endOffset = offsetArray[i + 1]; // Get the end offset for the current segment
+                    cout << "\nwriteRecordsToFile::endOffset: " << endOffset <<  ". offsetArray[" << i + 1 << "]. \n";
 
                     cout << "\nwriteRecordsToFile::startOffset: " << startOffset << " endOffset: " << endOffset << "\n";
                     // Write each character in the range [startOffset, endOffset) to the file
