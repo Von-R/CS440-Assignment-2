@@ -1012,7 +1012,6 @@ class StorageBufferManager {
             }
             
             cout << "searchMainMemory:: Initializing records variables...\n";
-            std::vector<Record> matchingRecords;
             std::string recordsString = std::string(page->data.begin(), page->data.end());
             std::istringstream recordsStream(recordsString);
             std::string record;
