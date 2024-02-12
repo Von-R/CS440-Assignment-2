@@ -1027,14 +1027,15 @@ class StorageBufferManager {
                     fields.push_back(field);
                 }
 
-                cout << "Record ID: " << fields[0].substr(1) << endl;
+                fields[0] = fields[0].substr(1);
+                cout << "Record ID: " << fields[0] << endl;
 
-                for (auto field : fields) {
-                    cout << "Field: " << field << ". Field type: " << typeid(field).name() << endl;
-                }
+                //for (auto field : fields) {
+                //    cout << "Field: " << field << ". Field type: " << typeid(field).name() << endl;
+                //}
 
-                if (fields.size() == 4 && std::stoi(fields[0].substr(1)) == searchID) {
-                    cout << "Matching record found: " << fields[0].substr(1) << endl;
+                if (fields.size() == 4 && std::stoi(fields[0]) == searchID) {
+                    cout << "Matching record found: " << fields[0] << endl;
                     Record foundRecord(fields);
                     foundRecord.print(); // Assuming Record::print() is a method to print the record details
                 }
