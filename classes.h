@@ -188,7 +188,7 @@ class StorageBufferManager {
             int pageDirectorySize;
 
             // Default constructor
-            PageDirectory() : nextPageDirectoryOffset(-1), entries(100), entryCount(0), nextDirectory(nullptr) {
+            PageDirectory() : nextPageDirectoryOffset(-1), entries(5), entryCount(0), nextDirectory(nullptr) {
                 pageDirectorySize = (3 * sizeof(int)) + (entries.capacity() * sizeof(PageDirectoryEntry));
             }
 
