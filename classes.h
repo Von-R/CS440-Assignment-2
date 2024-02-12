@@ -882,6 +882,8 @@ class StorageBufferManager {
             }
 
             // test stuff
+            cout << "loadMemoryPage:: beginOffset: " << beginOffset << ".\n";
+            cout << "loadMemoryPage:: endOffset: " << endOffset << ".\n";
             // Calculate the size of the chunk to read
             int size = endOffset - beginOffset;
             if (size <= 0) {
