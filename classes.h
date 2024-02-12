@@ -984,7 +984,7 @@ class StorageBufferManager {
 
             int i = 0;
 
-            while (page->data[i] != '\0' && i < page->data.size()) {
+            while (i < page->data.size()) {
                 cout << page->data[i];
                 i++;
             }
