@@ -189,10 +189,8 @@ class StorageBufferManager {
 
             // Default constructor
             PageDirectory() : nextPageDirectoryOffset(-1), entries(100), entryCount(0), nextDirectory(nullptr) {
-                pageDirectorySize = (3 * sizeof(int)) + (entries.capacity() * sizeof(PageDirectoryEntry));
+                pageDirectorySize = (2 * sizeof(int)) + (entries.capacity() * sizeof(PageDirectoryEntry));
             }
-
-
 
             int getPageDirectorySize() {
                 return pageDirectorySize;
@@ -864,7 +862,7 @@ class StorageBufferManager {
             header->pageDirectoryOffset = sizeof(header);
             file.write(reinterpret_cast<const char*>(&header), sizeof(header));
             file.write(reinterpret_cast<const char*>(&pageDirectory), pageDirectory->getPageDirectorySize());
-            //cout << "initializeDataFile:: pageDirectorySize: " << sizeof(pageDirectory) << ".\n";
+            cout << "initializeDataFile:: pageDirectorySize: " << sizeof(pageDirectory) << ".\n";
             
         }
 
@@ -909,11 +907,11 @@ class StorageBufferManager {
             cout << "loadMemoryPage:: Current file offset: " << file.tellg() << ".\n";
             for (int i = 0; i < size; i++) {
                 file.read(reinterpret_cast<char*>(&page->data[i]), sizeof(page->data[i]));
-                //if (page->getPageNumber() == 0) {
-                //    cout << "(" << i + beginOffset << ": " << page->data[i] << ")";
-                //} else {
-                cout << page->data[i];
-                //}
+                if (page->getPageNumber() == 0) {
+                    cout << "(" << i + beginOffset << ": " << page->data[i] << ")";
+                } else {
+                    cout << page->data[i];
+                }
             }
             cout << "\n\nloadMemoryPage end" << endl;
         }
