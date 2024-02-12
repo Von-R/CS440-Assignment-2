@@ -433,25 +433,18 @@ class StorageBufferManager {
 
             // Initialize the offsetArray to its maximum potential size first; sentinel value is -1
             offsetArray = get<0>(initializationResults); // Instance-specific offsetArray is initialized with 0's
-            //cout << "Value of offsetArray[0]: " << offsetArray[0] << endl;
 
-            
             // size of offset array, 2nd element of tuple returned by initializeValues
             offsetArraySize = get<1>(initializationResults); // Update this based on actual logic
-            //cout << "Value of offsetArraySize: " << offsetArraySize << endl;
 
             // Size of data vector; calculated based on the size of the offset array and the size of the page header
             dataVectorSize = page_size - offsetArraySize - sizeof(PageHeader);
-            //cout << "Value of dataVectorSize: " << dataVectorSize << endl;
+    
             // Initialize data vector to its maximum potential size first; sentinel value is -1
             data.resize(dataVectorSize, sentinelValue);
-            //cout << "Value of data[0]: " << data[0] << endl;
-            //cout << "Size of resized data vector: " << data.size() << endl;
+            
             // Initialize space remaining in the page
             pageHeader.spaceRemaining = dataVectorSize;
-            //cout << "Value of spaceRemaining: " << pageHeader.spaceRemaining << endl;
-            //cout << "Ensure all members are initialized correctly\n";
-            //cout << "Page constructor end" << endl;
         }
 
         // Returns the size of the offset array by count non-sentinel values
@@ -623,7 +616,7 @@ class StorageBufferManager {
 
             // Ensure the insertion does not exceed the vector's predefined max size
             if (offsetOfNextRecord + recordSize <= data.size()) {
-                cout  << "addRecord:: Adding record to page: " << this->pageNumber << "\n";
+                cout  << "addRecord:: \nAdding record to page: " << this->pageNumber << "\n";
                 std::copy(recordString.begin(), recordString.end(), data.begin() + offsetOfNextRecord);
                 pageHeader.recordsInPage += 1;
                 //// cout  << "addRecord:: spaceRemaining - recordSize: " << pageHeader.spaceRemaining << " - " << recordSize << " = " << pageHeader.spaceRemaining - recordSize << endl;
@@ -661,6 +654,7 @@ class StorageBufferManager {
             // Method to write the contents of this page to a file, return 
             // offset to end of page in file
             int writeRecordsToFile(std::ofstream& outputFile, int offsetSize) {
+                cout << "\nwriteRecordsToFile:: entries in offsetArray: " << this->offsetSize() << "\n";
                 if (!outputFile.is_open()) {
                     std::cerr << "Error: Output file is not open for writing.\n";
                     return -1; // Indicate error
@@ -670,7 +664,7 @@ class StorageBufferManager {
                     int startOffset = offsetArray[i];
                     int endOffset = offsetArray[i + 1]; // Get the end offset for the current segment
 
-                    cout << "writeRecordsToFile::startOffset: " << startOffset << " endOffset: " << endOffset << "\n";
+                    cout << "\nwriteRecordsToFile::startOffset: " << startOffset << " endOffset: " << endOffset << "\n";
                     // Write each character in the range [startOffset, endOffset) to the file
                     for (int j = startOffset; j < endOffset; ++j) {
                         if (data[j] != sentinelValue) {
@@ -1164,7 +1158,7 @@ class StorageBufferManager {
                             cerr << "Error: Size mismatch on NEXT PAGE ADD. Terminating..." << endl;
                             exit(-1);
                         } else {
-                            cout << "\nRecord added to next page, page: " << currentPage->getPageNumber() << ": \n" << record.toString() << "\n";
+                            cout << "Record added to next page, page: " << currentPage->getPageNumber() << ": \n" << record.toString() << "\n";
                         
                         }
                     }
@@ -1193,7 +1187,7 @@ class StorageBufferManager {
                             cerr << "Size mismatch. Terminating..." << endl;
                             exit(-1);
                         } else {
-                            cout << "\nRecord added to page " << currentPage->getPageNumber() << ": \n" << record.toString() << "\n";
+                            cout << "Record added to page " << currentPage->getPageNumber() << ": \n" << record.toString() << "\n";
                         }
                         //// cout  << "CreateFromFile: Record added to page?\n";
                     }            

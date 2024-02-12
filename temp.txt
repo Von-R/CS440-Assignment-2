@@ -1,5 +1,5 @@
 Current issues:
 
-implement expansion of pageDirectory linked list structure
+final records are failing to be written to file from each page: dumpPages
 
-implement program termination and destruction of memory objects/close streams/etc. 
+records beyond a certain point are not being read/searched despite being on file
