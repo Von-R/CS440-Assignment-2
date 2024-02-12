@@ -15,13 +15,10 @@ Skeleton code for storage and buffer management
 #include "classes.h"
 using namespace std;
 
-int StorageBufferManager::PageDirectory::directoryCount = 0;
-
 int main(int argc, char* const argv[]) {
 
     // Create the EmployeeRelation file from Employee.csv
     
-
     // Create a StorageBufferManager object
     StorageBufferManager manager("EmployeeRelation");
 
