@@ -1029,6 +1029,10 @@ class StorageBufferManager {
 
                 cout << "Record ID: " << fields[0].substr(1) << endl;
 
+                for (auto field : fields) {
+                    cout << "Field: " << field << ". Field type: " << typeid(field).name() << endl;
+                }
+
                 if (fields.size() == 4 && std::stoi(fields[0].substr(1)) == searchID) {
                     cout << "Matching record found: " << fields[0].substr(1) << endl;
                     Record foundRecord(fields);
