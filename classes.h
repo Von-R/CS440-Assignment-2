@@ -185,9 +185,16 @@ class StorageBufferManager {
             int entryCount; // Keep track of valid entries so far. Used for add indexing
             int nextPageDirectoryOffset; // File offset to the next directory, or -1 if this is the last
             PageDirectory * nextDirectory; // Pointer to the next directory in the list
+            int pageDirectorySize;
 
             // Default constructor
-            PageDirectory() : nextPageDirectoryOffset(-1), entries(100), entryCount(0), nextDirectory(nullptr) {}
+            PageDirectory() : nextPageDirectoryOffset(-1), entries(100), entryCount(0), nextDirectory(nullptr) {
+                pageDirectorySize = (2 * sizeof(int)) + (entries.capacity() * sizeof(PageDirectoryEntry));
+            }
+
+            int getPageDirectorySize() {
+                return pageDirectorySize;
+            }
 
             void addNewPageDirectoryNode(ofstream & file, FileHeader * header) {
                 // Write the current page directory to the file
@@ -854,7 +861,9 @@ class StorageBufferManager {
             // Write an empty file header
             header->pageDirectoryOffset = sizeof(header);
             file.write(reinterpret_cast<const char*>(&header), sizeof(header));
-            file.write(reinterpret_cast<const char*>(&pageDirectory), sizeof(pageDirectory));
+            file.write(reinterpret_cast<const char*>(&pageDirectory), pageDirectory->getPageDirectorySize());
+            cout << "initializeDataFile:: pageDirectorySize: " << sizeof(pageDirectory) << ".\n";
+            
         }
 
 
@@ -892,8 +901,6 @@ class StorageBufferManager {
             }
 
             file.seekg(beginOffset, std::ios::beg);
-
-
 
             // Read the page from the file in page in memory
             cout << "loadMemoryPage:: Reading page " << page->getPageNumber() << " from file. " << size << " bytes; offset: " << beginOffset << ".\n";
