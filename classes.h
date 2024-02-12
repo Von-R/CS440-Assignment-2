@@ -26,7 +26,7 @@ public:
         cout << "\tID: " << id << "\n";
         cout << "\tNAME: " << name << "\n";
         cout << "\tBIO: " << bio << "\n";
-        cout << "\tMANAGER_ID: " << manager_id << "\n";
+        cout << "\tMANAGER_ID: " << manager_id << "\n\n";
     }
 
     int recordSize() {
