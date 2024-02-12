@@ -190,7 +190,7 @@ class StorageBufferManager {
             int pageDirectorySize;
 
             // Default constructor
-            PageDirectory() : nextPageDirectoryOffset(-1), entries(100), entryCount(0), nextDirectory(nullptr) {
+            PageDirectory() : nextPageDirectoryOffset(-1), entries(1000), entryCount(0), nextDirectory(nullptr) {
                 pageDirectorySize = (3 * sizeof(int)) + (entries.capacity() * sizeof(PageDirectoryEntry));
             }
 
@@ -678,7 +678,7 @@ class StorageBufferManager {
                 }
 
                 // Optionally, return the new offset after writing, if needed
-                cout << "writeRecordsToFile:: endOffset of page on disk: " << outputFile.tellp() << "\n";
+                cout << "\nwriteRecordsToFile:: endOffset of page on disk: " << outputFile.tellp() << "\n";
                 return outputFile.tellp();
             }
 
@@ -794,13 +794,9 @@ class StorageBufferManager {
                     // Update the page directory with new entry
                     
                     cout << "dumpPages::Adding page directory entry. Offset: " << pageOffset << "\n";
-                    while (pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file) == -1){
-                        cout << "dumpPages::Page directory is full. Creating new page directory node.\n";
-                        // If the page directory is full, create a new page directory node
-                        pageDirectory->addNewPageDirectoryNode(file, header);
-                        // Advance node to the new page directory
-                        pageDirectory = pageDirectory->nextDirectory;
-                        // Try again to add the page directory entry
+                    if (pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file) == -1){
+                        cout << "dumpPages::Error: entries capacity exceeded. Dynamic calculation failed.\n";
+                        exit(-1);
                     }
 
                     // Diagnostic print statements: print info of most recent page added to page directory
