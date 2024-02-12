@@ -1054,7 +1054,7 @@ class StorageBufferManager {
             if (page->getNextPage() == nullptr) {
                 return; // Base case: Reached the end of the page list
             } else {
-                searchMainMemory(page->getNextPage(), searchID);
+                searchMainMemory(page->getNextPage(), searchID, matchingRecords);
             }
             cout << "searchMainMemory end" << endl;
         }
