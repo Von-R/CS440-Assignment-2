@@ -630,7 +630,7 @@ class StorageBufferManager {
                     return false;
                 }
 
-                cout << "addRecord:: Added offset to offsetArray: " << offsetArray.back() << "\n";
+                cout << "addRecord:: Offset to end of the " << pageHeader.recordsInPage << " record in the page: " << offsetArray.back() << "\n";
 
                 incrementRecordCount();
                 cout << "addRecord:: Incremented record count: " << recordCount << "\n";
