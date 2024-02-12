@@ -596,28 +596,30 @@ class StorageBufferManager {
 
         // Method to add a record to the page
         bool addRecord(const Record& record) {
-            //// cout  << "addRecord begin" << endl;
-
+            cout << "addRecord:: begin\n";
             auto recordString = record.toString();
-
-            // This should print out a properly formatted record string with not trailing periods
-            //// cout  << "addRecord:: TEST PRINT: Record string: " << recordString << "\n";
-
-            size_t recordSize = recordString.size();
             
+            size_t recordSize = recordString.size();
+            cout << "addRecord:: recordString size: " << recordSize << endl;
             // Check if there's enough space left in the page
             if (recordSize > static_cast<size_t>(pageHeader.spaceRemaining)) {
                 std::cerr << "addRecord::Error: Not enough space in the page to add the record.\n";
                 return false;
             }
             
+
+
+
             // Calculate the offset for the new record
             int offsetOfNextRecord = findOffsetOfNextRecord(data, sentinelValue);
+            cout  << "addRecord:: offsetOfNextRecord: " << offsetOfNextRecord << endl;
 
             // Ensure the insertion does not exceed the vector's predefined max size
             if (offsetOfNextRecord + recordSize <= data.size()) {
                 cout  << "addRecord:: \nAdding record to page: " << this->pageNumber << "\n";
                 std::copy(recordString.begin(), recordString.end(), data.begin() + offsetOfNextRecord);
+                
+                cout << "addRecord:: Offset of next record: " << offsetOfNextRecord << "\n";
                 pageHeader.recordsInPage += 1;
                 //// cout  << "addRecord:: spaceRemaining - recordSize: " << pageHeader.spaceRemaining << " - " << recordSize << " = " << pageHeader.spaceRemaining - recordSize << endl;
                 pageHeader.spaceRemaining -= recordSize;
@@ -628,16 +630,18 @@ class StorageBufferManager {
                     return false;
                 }
 
-                    /*
-                    // cout  << "addRecord::Test: Confirm record added to page:\nPrinting stored record from main memory: \n";
-                    // cout  << "0x" << setw(3) << setfill('0') << hex << offsetArray.back() << "\t" << dec;
-                    for (int i = offsetOfNextRecord; i < offsetOfNextRecord + recordSize; ++i) {
-                        // cout  << data[i];
-                    }
-                    */
+                cout << "addRecord:: Added offset to offsetArray: " << offsetArray.back() << "\n";
+
                 incrementRecordCount();
-                cout << "Incremented record count: " << recordCount << "\n";
+                cout << "addRecord:: Incremented record count: " << recordCount << "\n";
+                cout << "addRecord:: end\n";
                 return true;
+
+
+
+
+
+
 
                 } else if (offsetOfNextRecord + recordSize > data.size()) {
                     std::cerr << "addRecord:: Error: Attempt to exceed predefined max size of data vector.\n";
@@ -646,9 +650,6 @@ class StorageBufferManager {
                     std::cerr << "addRecord:: Error: Unknown error occurred while adding record to page.\n";
                     return false;
                 }
-
-                
-                //// cout  << "addRecord successful" << endl;
             }
 
             // Method to write the contents of this page to a file, return 
