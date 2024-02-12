@@ -669,6 +669,7 @@ class StorageBufferManager {
                 }
 
                 // Optionally, return the new offset after writing, if needed
+                cout << "writeRecordsToFile:: endOffset of page on disk: " << outputFile.tellp() << "\n";
                 return outputFile.tellp();
             }
 
@@ -1186,6 +1187,7 @@ class StorageBufferManager {
                 cout << ":: pageDirectory->entries[0].pageOffset: " << currentPageDirectory->entries[0].pageOffset << endl;
                 cout << ":: pageDirectory->entries[0].recordsInPage: " << currentPageDirectory->entries[0].recordsInPage << endl;
                 cout << "/createFromFile:: End deserialized file header and page directory test prints.\n\n";
+                cout << "createFromFile: End createFromFile...\n\n\n\n";
 
             };
 
