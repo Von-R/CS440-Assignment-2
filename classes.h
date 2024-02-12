@@ -912,6 +912,7 @@ class StorageBufferManager {
             Page * currentPage = pageList->head;
             int begIndex;
             int endIndex;
+            vector<Record> matchingRecords;
 
             // Open file for reading
             ifstream dataFile("EmployeeRelation.dat", std::ios::binary | std::ios::in);
@@ -967,7 +968,7 @@ class StorageBufferManager {
                     if (currentPage->getNextPage() == nullptr) {
                         cout << "searchID:: Last page reached. Loading and searching...\n";
                         loadMemoryPage(dataFile, currentPage, begIndex, endIndex);
-                        searchMainMemory(pageList->head, searchID);
+                        searchMainMemory(pageList->head, searchID, matchingRecords);
                         pageList->resetPages();
                         currentPage = pageList->head;
                     }
@@ -988,11 +989,17 @@ class StorageBufferManager {
                 pageDirectory = pageDirectory->nextDirectory;
             }
             cout << "searchID end" << endl;
+
+            // Print matching records
+            cout << "Matching records found for Search ID: " << searchID << ".\n\n";
+            for (auto record : matchingRecords) {
+                record.print();
+            }
         };
 
         // Read records from file and search by ID
         // There may be duplicates, so search the entire file
-        void searchMainMemory(Page* page, int searchID) {
+        void searchMainMemory(Page* page, int searchID, std::vector<Record>& matchingRecords) {
             cout << "searchMainMemory begin:: searching Page " << page->pageNumber << endl;
 
             int i = 0;
@@ -1037,7 +1044,8 @@ class StorageBufferManager {
                 if (fields.size() == 4 && std::stoi(fields[0]) == searchID) {
                     cout << "Matching record found: " << fields[0] << endl;
                     Record foundRecord(fields);
-                    foundRecord.print(); // Assuming Record::print() is a method to print the record details
+                    matchingRecords.push_back(foundRecord);
+                    //foundRecord.print(); // Assuming Record::print() is a method to print the record details
                 }
             }
 
