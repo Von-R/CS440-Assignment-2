@@ -40,56 +40,23 @@ public:
             return "$" + to_string(id) + "#" + name + "#" + bio + "#" + to_string(manager_id) + "%";
         }
 
-    
 };
-
-// Reconstruct fields vector from stringified records on file
-// Used to reconstruct records from file
-inline vector<string> stringToVector(const string& recordString) {
-    // cout << "stringToVector begin" << endl;
-        vector<string> result;
-        stringstream ss(recordString);
-        string item;
-
-        while (getline(ss, item, '#')) {
-            result.push_back(item);
-        }
-
-        // Handle the trailing newline if present
-        if (!result.empty() && !result.back().empty() && result.back().back() == '\n') {
-            result.back().erase(result.back().size() - 1);
-        }
-
-        cout << "stringToVector end" << endl;
-        return result;
-    }
-
 
 class StorageBufferManager {
 
     public:
-        // initialize the  block size allowed in main memory according to the question 
-        const static int BLOCK_SIZE = 4096; 
-        const static int maxPages = 3; // 3 pages in main memory at most 
-        fstream EmployeeRelation;
-        // You may declare variables based on your need 
-        int numRecords; // number of records in the file
-        int pagesWrittenToFile = 0; // number of pages written to file. Track so that written pages are indexed by page number.
-        tuple<std::vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializationResults;
-        int static maxPagesOnDisk;
+        // Initialize the block size allowed in main memory according to the question 
+        const static int BLOCK_SIZE = 4096;     // Max size of a block in main memory
+        const static int maxPages = 3;          // 3 pages in main memory at most 
+        int pagesWrittenToFile = 0;             // Number of pages written to file. Track so that written pages are indexed by page number.
+        tuple<std::vector<int>, unsigned long long> static initializationResults;
     
-
-
         StorageBufferManager(string NewFileName) { 
-            // cout << "StorageBufferManager constructor begin" << endl;
-
-            //initialize your variables
-            int maxPages = 3; // 3 pages in main memory at most 
             /*
-                This variable contains:
-                    offset array of size maxRecords, filled with 0's
-                    the size of the offsetArray
-                    the total count of all records
+                'initializationResults'contains:
+                    Vector containing record offsets. Initialized to -1. Size: Max possible records per page given smallest record in input file
+                    Size of the offsetArray
+                    Total count of all records
                     the max size of record, used later to calc min number of pages needed
             
             */
@@ -307,7 +274,7 @@ class StorageBufferManager {
             }
         };
 
-         tuple<std::vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializeValues() {
+         tuple<std::vector<int>, unsigned long long> static initializeValues() {
                     // cout << "initializeValues begin" << endl;
 
                     int fileCount = 0;
@@ -363,8 +330,7 @@ class StorageBufferManager {
                     //         the total count of all records
                     //         the max size of record, used later to calc min number of pages needed
                     // cout << "initializeValues end" << endl;
-                    return make_tuple(std::vector<int>(maxRecords, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(fileCount), 
-                    static_cast<unsigned long long>(maxRecordSize));
+                    return make_tuple(std::vector<int>(maxRecords, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int));
 
 
                 };
