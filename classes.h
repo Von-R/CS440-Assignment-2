@@ -1063,18 +1063,25 @@ class StorageBufferManager {
                     }
                 }
 
-                // Loop exits only when there's a single entry remaining in the page directory
-                // scenarios: 
-                // [0, 2) pages loaded in main memory
-                // <= 1 pages on disk that still need to be loaded
-                // Load the last page and search into correct main memory page
+                // If last page directory, load last page from disk then search full main memory
+                // This is the cause of the last record not being found
+                // Not sure how to fix
 
 
+                // Handle cases where current page has stuff in it
+                if (!currentPage->dataVectorEmpty() && currentPage->getNextPage() != nullptr) {
+                    currentPage = currentPage->getNextPage();
+                } else if (!currentPage->dataVectorEmpty()) {
+                    searchMainMemory(pageList->head, searchID, matchingRecords);
+                    pageList->resetPages();
+                    currentPage = pageList->head;
+                }
+                
                 cout << "searchID:: searching last batch of records...\n\n";
                 begIndex = dataFile.tellg();
                 char ch;
                 endIndex = begIndex;
-                dataFile.seekg(begIndex, ios::beg);
+                // dataFile.seekg(begIndex, ios::beg);
                
                 while (dataFile.get(ch)) {
                     cout << ch;
