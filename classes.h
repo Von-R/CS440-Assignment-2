@@ -629,7 +629,6 @@ class StorageBufferManager {
                     }
                 }
                 
-
                 pageHeader.recordsInPage += 1;
                 
                 pageHeader.spaceRemaining -= recordSize;
