@@ -922,15 +922,17 @@ class StorageBufferManager {
                 exit(-1);
             }
 
-            // test stuff
-            cout << "loadMemoryPage:: beginOffset: " << beginOffset << ".\n";
-            cout << "loadMemoryPage:: endOffset: " << endOffset << ".\n";
             // Calculate the size of the chunk to read
             int size = endOffset - beginOffset;
             if (size <= 0) {
                 cerr << "Invalid offsets provided.\n";
                 return;
             }
+
+
+            // Test Prints
+            cout << "loadMemoryPage:: beginOffset: " << beginOffset << ".\n";
+            cout << "loadMemoryPage:: endOffset: " << endOffset << ".\n";
 
             file.seekg(beginOffset, ios::beg);
 
@@ -1042,7 +1044,7 @@ class StorageBufferManager {
                 // Load the last page and search into correct main memory page
 
 
-                cout << "searchID:: searching last batch of records...\n";
+                cout << "searchID:: searching last batch of records...\n\n";
                 begIndex = dataFile.tellg();
                 char ch;
                 endIndex = begIndex;
@@ -1053,7 +1055,7 @@ class StorageBufferManager {
                     endIndex = dataFile.tellg();
                 }
 
-                cout << "searchID:: begIndex: " << begIndex << endl;
+                cout << "\n\nsearchID:: begIndex: " << begIndex << endl;
                 cout << "searchID:: endIndex: " << endIndex << endl;
                 loadMemoryPage(dataFile, currentPage, begIndex, endIndex);
                 searchMainMemory(pageList->head, searchID, matchingRecords);
