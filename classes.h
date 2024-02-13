@@ -417,7 +417,7 @@ class StorageBufferManager {
             return true;
         }
 
-        int getDataSize() {
+        int getDataElems() {
             return dataSize(data, sentinelValue);
         }
 
@@ -482,7 +482,6 @@ class StorageBufferManager {
         // Getters
         int getPageNumber() {return pageNumber;}
         Page * getNextPage() {return nextPage;}
-        int getDataSize() {return data.size();}
         int getOffsetArraySize() {return offsetArraySize;}
         int getDataVectorSize() {return dataVectorSize;}
         bool checkDataEmpty() {return data.empty();}
@@ -689,7 +688,7 @@ class StorageBufferManager {
                 }
 
                 cout << "writeRecordsToFile:: Writing page " << pageNumber << " to file...\n";
-                for (int i = 0; i < this->getDataSize(); i++) {
+                for (int i = 0; i < this->getDataElems(); i++) {
                     outputFile.write(reinterpret_cast<const char*>(&data[i]), sizeof(data[i]));
                     cout << data[i];
                 }
