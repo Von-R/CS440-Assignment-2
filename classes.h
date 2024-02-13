@@ -417,6 +417,10 @@ class StorageBufferManager {
             return true;
         }
 
+        int getDataSize() {
+            return dataSize(data, sentinelValue);
+        }
+
         
 
    
@@ -685,7 +689,7 @@ class StorageBufferManager {
                 }
 
                 cout << "writeRecordsToFile:: Writing page " << pageNumber << " to file...\n";
-                for (int i = 0; i < data.size(); i++) {
+                for (int i = 0; i < this->getDataSize(); i++) {
                     outputFile.write(reinterpret_cast<const char*>(&data[i]), sizeof(data[i]));
                     cout << data[i];
                 }
