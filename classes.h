@@ -619,6 +619,7 @@ class StorageBufferManager {
                 
                 cout << "addRecord:: Offset of add: " << offsetOfNextRecord << "\n";
 
+                /*
                 for (int i = 0; i < offsetArray.size(); i++) {
                     if (offsetArray[i] == -1) {
                         offsetArray[i] = offsetOfNextRecord + recordSize;
@@ -626,12 +627,15 @@ class StorageBufferManager {
                         break;
                     }
                 }
+                */
 
                 pageHeader.recordsInPage += 1;
                 
                 pageHeader.spaceRemaining -= recordSize;
                 //offsetArray.push_back(offsetOfNextRecord);
-
+                if (offsetSize() == get<1>(initializationResults)) {
+                    offsetArray.push_back(offsetOfNextRecord + recordSize);
+                }
                 if (!addOffsetToFirstSentinel(offsetArray, offsetOfNextRecord)) {
                     std::cerr << "addRecord:: Error: Unable to add offset to offsetArray.\n";
                     return false;
