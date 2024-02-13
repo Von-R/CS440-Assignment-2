@@ -39,6 +39,6 @@ int main(int argc, char* const argv[]) {
         // Search for the ID
         manager.searchID(id);
     }
-    
+    cout << "Goodbye!";
     return 0;
 }
