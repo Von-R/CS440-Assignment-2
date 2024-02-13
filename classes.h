@@ -642,11 +642,13 @@ class StorageBufferManager {
                 if (!addOffsetToFirstSentinel(offsetArray, offsetOfNextRecord)) {
                     std::cerr << "addRecord:: Error: Unable to add offset to offsetArray.\n";
                     return false;
-                } else {
+                } 
+                /* else {
 
                     //cout << "addRecord:: Offset to end of the " << pageHeader.recordsInPage << " record in the page: " << offsetArray.back() << "\n";
+                    
 
-                }
+                } */
 
                 incrementRecordCount();
                 cout << "addRecord:: Incremented record count: " << recordCount << "\n";
