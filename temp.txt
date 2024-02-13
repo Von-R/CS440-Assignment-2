@@ -3,3 +3,11 @@ Current issues:
 final records are failing to be written to file from each page: dumpPages
 
 records beyond a certain point are not being read/searched despite being on file
+
+
+
+To fix:
+
+expanding directory node structure
+
+calc offsets as current - last offset so that end of record offsets are stored only
