@@ -627,13 +627,18 @@ class StorageBufferManager {
 
                 if (lastRecordInPage) {
                     cout << "addRecord:: Last record in page. Append offset to end of record to offset array.\n";
-                    offsetArray.push_back(offsetOfNextRecord + recordSize);
+                    int i = 0;
+                    while (offsetArray[i] != -1) {
+                        i++;
+                    }
+
+                    offsetArray[i] = offsetOfNextRecord + recordSize;
 
                     cout << "Print offset array for page " << this->pageNumber << ":\n";
                     for (int elem : offsetArray) {
                         cout << elem << " ";
                     }
-                    
+
                 } else if (!addOffsetToFirstSentinel(offsetArray, offsetOfNextRecord)) {
                     std::cerr << "addRecord:: Error: Unable to add offset to offsetArray.\n";
                     return false;
