@@ -664,7 +664,7 @@ class StorageBufferManager {
                     return -1; // Indicate error
                 }
 
-                for (int i = 0; i < offsetSize; ++i) { // -1 to prevent accessing beyond the last valid index
+                for (int i = 0; i < offsetSize - 1; ++i) { // -1 to prevent accessing beyond the last valid index
                     int startOffset = offsetArray[i];
                     cout << "\nwriteRecordsToFile::startOffset: " << startOffset << ". offsetArray[" << i << "].\n";
                     int endOffset = offsetArray[i + 1]; // Get the end offset for the current segment
