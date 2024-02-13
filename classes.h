@@ -47,28 +47,6 @@ public:
     
 };
 
-// Reconstruct fields vector from stringified records on file
-// Used to reconstruct records from file
-inline vector<string> stringToVector(const string& recordString) {
-    // cout << "stringToVector begin" << endl;
-        vector<string> result;
-        stringstream ss(recordString);
-        string item;
-
-        while (getline(ss, item, '#')) {
-            result.push_back(item);
-        }
-
-        // Handle the trailing newline if present
-        if (!result.empty() && !result.back().empty() && result.back().back() == '\n') {
-            result.back().erase(result.back().size() - 1);
-        }
-
-        cout << "stringToVector end" << endl;
-        return result;
-    }
-
-
 class StorageBufferManager {
 
     public:
@@ -85,8 +63,6 @@ class StorageBufferManager {
     
         
          tuple<vector<int>, unsigned long long, unsigned long long> static initializeValues() {
-                    // cout << "initializeValues begin" << endl;
-
                     int fileCount = 0;
                     int minBioLen = INT_MAX;
                     int maxBioLen = 0;
@@ -136,54 +112,43 @@ class StorageBufferManager {
                     // Use them to calculate number of pages needed assuming all records are max size
                     int maxRecordSize = 3 * 8 + maxNameLen + maxBioLen;
 
-                    // how many records can fit in a page if all records are max size
+                    // How many records can fit in a page if all records are max size
                     int minRecords = (BLOCK_SIZE) / maxRecordSize;
                     int maxE = fileCount / minRecords + 1;
-                    cout << "initializeValues:: maxEntries: " << maxE << endl;
-                    //int minPages = (BLOCK_SIZE - static_cast<unsigned long long>(maxRecords) * sizeof(int) - sizeof(Page::PageHeader)) / maxRecordSize;
-                    // Returns tuple containing offset array of size maxRecords, filled with 0's, and the size of the array
-                    //         the total count of all records
-                    //         the max size of record, used later to calc min number of pages needed
-                    // cout << "initializeValues end" << endl;
+                    
+                    /* Returns tuple containing offset array of size maxRecords, filled with 0's, and the size of the array
+                    the total count of all records
+                    the max size of record, used later to calc min number of pages needed */
+            
                     return make_tuple(vector<int>(maxRecords + 1, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(maxE));
 
 
                 };
 
         StorageBufferManager(string NewFileName) { 
-            // cout << "StorageBufferManager constructor begin" << endl;
-
-            //initialize your variables
-            //int maxPages = 3; // 3 pages in main memory at most 
             /*
                 This variable contains:
                     offset array of size maxRecords, filled with 0's
                     the size of the offsetArray
                     the total count of all records
                     the max size of record, used later to calc min number of pages needed
-            
             */
             initializationResults = initializeValues();
             maxEntries = get<2>(initializationResults);
             cout << "StorageBufferManager::Constructor, maxEntries: " << maxEntries << endl;
-            
-            // cout << "StorageBufferManager constructor end" << endl;
         };
         
 
-        // Function to initialize the values of the variables
         /*
         Returns tuple containing: 
             offset array of size maxRecords, filled with 0's
             the size of the offsetArray
-            ??? the minimum number of pages required on disk file: 
-
+            Max number of pages needed for all records; based on largest record size
         */
         struct FileHeader {
             int totalNumberOfPages; // Total pages in the file
             int pageDirectoryOffset; // Offset where the page directory starts
             int pageDirectorySize; // Number of entries in the page directory; optional if dynamic
-            // Additional metadata as needed, such as record schema information
 
             // Default constructor
             FileHeader() : totalNumberOfPages(0), pageDirectoryOffset(sizeof(FileHeader)), pageDirectorySize(1) {}
@@ -201,10 +166,12 @@ class StorageBufferManager {
                     cerr << "FileHeader.serialize: Error: File is not open for writing.\n";
                     exit(-1);
                 }
+                /*
                 cout << "\nFileHeader.serialize: Writing file header to file at offset: " << file.tellp() << "\n";
                 cout << "FileHeader.serialize: totalNumberOfPages: " << totalNumberOfPages << "\n";
                 cout << "FileHeader.serialize: pageDirectorySize: " << pageDirectorySize << "\n";
                 cout << "FileHeader.serialize: pageDirectoryOffset: " << pageDirectoryOffset << "\n";
+                */
                 // Write the total number of pages to the file
                 file.write(reinterpret_cast<const char*>(&totalNumberOfPages), sizeof(totalNumberOfPages));
                 // Write the page directory size to the file
@@ -215,7 +182,7 @@ class StorageBufferManager {
                     cerr << "FileHeader.serialize: Error: Failed to write file header to file.\n";
                     exit(-1);
                 }
-                cout << "FileHeader.serialize: Finished writing file header to file. End offset: " << file.tellp() << "\n";
+                // cout <<"FileHeader.serialize: Finished writing file header to file. End offset: " << file.tellp() << "\n";
                 pageDirectoryOffset = file.tellp();
             }   
 
@@ -225,21 +192,21 @@ class StorageBufferManager {
                     exit(-1);
                 } 
 
-                cout << "\nFileHeader.deserialize: Reading file header from file at offset: " << file.tellg() << "\n";
+                // cout <<"\nFileHeader.deserialize: Reading file header from file at offset: " << file.tellg() << "\n";
                 // Read the total number of pages from the file
                 file.read(reinterpret_cast<char*>(&totalNumberOfPages), sizeof(totalNumberOfPages));
-                cout << "FileHeader.deserialize: totalNumberOfPages: " << totalNumberOfPages << "\n";
+                // cout <<"FileHeader.deserialize: totalNumberOfPages: " << totalNumberOfPages << "\n";
                 // Read the page directory size from the file
                 file.read(reinterpret_cast<char*>(&pageDirectorySize), sizeof(pageDirectorySize));
-                cout << "FileHeader.deserialize: pageDirectorySize: " << pageDirectorySize << "\n";
+                // cout <<"FileHeader.deserialize: pageDirectorySize: " << pageDirectorySize << "\n";
                 // Read the offset to the page directory from the file
                 file.read(reinterpret_cast<char*>(&pageDirectoryOffset), sizeof(pageDirectoryOffset));
-                cout << "FileHeader.deserialize: pageDirectoryOffset: " << pageDirectoryOffset << "\n";
+                // cout <<"FileHeader.deserialize: pageDirectoryOffset: " << pageDirectoryOffset << "\n";
                 if (file.fail()) {
                     cerr << "FileHeader.deserialize: Error: Failed to read file header from file.\n";
                     exit(-1);
                 }
-                cout << "FileHeader.deserialize: Finished reading file header from file. Current offset: " << file.tellg() << "\n\n";
+                // cout <<"FileHeader.deserialize: Finished reading file header from file. Current offset: " << file.tellg() << "\n\n";
             }
         };
 
@@ -262,7 +229,7 @@ class StorageBufferManager {
             // Default constructor
             PageDirectory() : nextPageDirectoryOffset(-1), entries(maxEntries), entryCount(0), nextDirectory(nullptr) {
                 pageDirectorySize = (3 * sizeof(int)) + (entries.capacity() * sizeof(PageDirectoryEntry));
-                cout << "PageDirectory:: Default constructor. Size of entry vector: " << entries.size() << "\n";
+                // cout <<"PageDirectory:: Default constructor. Size of entry vector: " << entries.size() << "\n";
             }
 
             int getPageDirectorySize() {
@@ -272,16 +239,16 @@ class StorageBufferManager {
             void addNewPageDirectoryNode(ofstream & file, FileHeader * header) {
                 // Write the current page directory to the file
                 PageDirectory * newPageDirectory = new PageDirectory();
-                cout << "addNewPageDirectoryNode:: Writing current page directory to file.\n";
+                // cout <<"addNewPageDirectoryNode:: Writing current page directory to file.\n";
                 this->nextPageDirectoryOffset = file.tellp();
-                cout << "addNewPageDirectoryNode:: nextPageDirectoryOffset from tellp: " << nextPageDirectoryOffset << "\n";
+                // cout <<"addNewPageDirectoryNode:: nextPageDirectoryOffset from tellp: " << nextPageDirectoryOffset << "\n";
                 this->nextDirectory = newPageDirectory;
                 header->updateDirectorySize();
             }
 
             // Add a new page directory entry
             int addPageDirectoryEntry(int offset, int records, ofstream& file) {
-                cout << "\naddPageDirectoryEntry:: begin\n";
+                // cout <<"\naddPageDirectoryEntry:: begin\n";
                 // If directory is full, write to file and return false: create new dir
                 if (entryCount >= entries.size()) {
                     serialize(file);
@@ -293,15 +260,15 @@ class StorageBufferManager {
                     cerr << "addPageDirectoryEntry:: Error: Invalid offset or record count. Cannot add new entry.\n";
                     return 0;
                 }
-                cout << "addPageDirectoryEntry:: Adding new page directory entry. Offset: " << offset << "\n";
+                // cout <<"addPageDirectoryEntry:: Adding new page directory entry. Offset: " << offset << "\n";
                 entries[entryCount].pageOffset = offset;
-                cout << "addPageDirectoryEntry:: Assert: entries["<< entryCount <<"].pageOffset: " << entries[entryCount].pageOffset << 
-                " == " << offset << "\n";
+                // cout <<"addPageDirectoryEntry:: Assert: entries["<< entryCount <<"].pageOffset: " << entries[entryCount].pageOffset << 
+                // " == " << offset << "\n";
                 entries[entryCount].recordsInPage = records;
-                cout << "addPageDirectoryEntry:: Assert: entries["<< entryCount <<"].recordsInPage: " << entries[entryCount].recordsInPage <<
-                " == " << records << "\n";
+                // cout <<"addPageDirectoryEntry:: Assert: entries["<< entryCount <<"].recordsInPage: " << entries[entryCount].recordsInPage <<
+                // " == " << records << "\n";
                 this->entryCount++;
-                cout << "addPageDirectoryEntry:: end\nentryCount: " << entryCount << "\n";
+                // cout <<"addPageDirectoryEntry:: end\nentryCount: " << entryCount << "\n";
                 return 1;
             }
 
@@ -311,13 +278,13 @@ class StorageBufferManager {
                     cerr << "\nPageDirectory.serialize: Error: File is not open for writing.\n";
                     exit(-1);
                 }
-                cout << "Start writing PageDirectory at offset: " << file.tellp() << endl;
+                // cout <<"Start writing PageDirectory at offset: " << file.tellp() << endl;
 
                 // Write the entry count and next page directory offset first
                 file.write(reinterpret_cast<const char*>(&entryCount), sizeof(entryCount));
-                cout << "PageDirectory.serialize: entryCount: " << entryCount << "\n";
+                // cout <<"PageDirectory.serialize: entryCount: " << entryCount << "\n";
                 file.write(reinterpret_cast<const char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
-                cout << "PageDirectory.serialize: nextPageDirectoryOffset: " << nextPageDirectoryOffset << "\n";
+                // cout <<"PageDirectory.serialize: nextPageDirectoryOffset: " << nextPageDirectoryOffset << "\n";
 
 
                 vector<PageDirectoryEntry> entriesCopy = entries;
@@ -325,23 +292,23 @@ class StorageBufferManager {
 
 
                 // Then write each entry
-                cout << "PageDirectory.serialize: Writing page directory entries to file: \n";
+                // cout <<"PageDirectory.serialize: Writing page directory entries to file: \n";
                 for (const auto& entry : entries) {
                     if (entry.pageOffset == -1) {
                         break;
                     }
                     file.write(reinterpret_cast<const char*>(&entry.pageOffset), sizeof(entry.pageOffset));
-                    cout << "OS: " << entry.pageOffset << ", ";
+                    // cout <<"OS: " << entry.pageOffset << ", ";
                     file.write(reinterpret_cast<const char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
-                    cout << "RIP: " << entry.recordsInPage << ", ";
+                    // cout <<"RIP: " << entry.recordsInPage << ", ";
                 }
-                cout << "\n";
+                // cout <<"\n";
 
                 if (file.fail()) {
                     cerr << "PageDirectory.serialize: Error: Failed to write page directory to file.\n";
                     exit(-1);
                 }
-                cout << "Finished writing PageDirectory. End offset: " << file.tellp() << endl << endl;
+                // cout <<"Finished writing PageDirectory. End offset: " << file.tellp() << endl << endl;
 
             } 
 
@@ -352,25 +319,25 @@ class StorageBufferManager {
                     exit(-1);
                 }
                 // Read the entry count and next page directory offset first
-                cout << "PageDirectory.deserialize: Start reading PageDirectory at offset: " << offset << endl;
+                // cout <<"PageDirectory.deserialize: Start reading PageDirectory at offset: " << offset << endl;
                 file.seekg(offset);
                 file.read(reinterpret_cast<char*>(&entryCount), sizeof(entryCount));
-                cout << "PageDirectory.deserialize: entryCount: " << entryCount << endl;
+                // cout <<"PageDirectory.deserialize: entryCount: " << entryCount << endl;
                 file.read(reinterpret_cast<char*>(&nextPageDirectoryOffset), sizeof(nextPageDirectoryOffset));
-                cout << "PageDirectory.deserialize: nextPageDirectoryOffset: " << nextPageDirectoryOffset << endl;
+                // cout <<"PageDirectory.deserialize: nextPageDirectoryOffset: " << nextPageDirectoryOffset << endl;
 
                 // Resize entries vector based on entryCount
                 vector<PageDirectoryEntry> entriesCopy = entries;
                 entriesCopy.resize(entryCount);
 
                 // Then read each entry
-                cout << "PageDirectory.deserialize: Reading page directory entries from file: \n";
+                // cout <<"PageDirectory.deserialize: Reading page directory entries from file: \n";
 
                 int i = 0;
                 for (auto& entry : entries) {
                     file.read(reinterpret_cast<char*>(&entry.pageOffset), sizeof(entry.pageOffset));
                     file.read(reinterpret_cast<char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
-                    cout << "Page " << i << "; OS: " << entry.pageOffset << ", RIP: " << entry.recordsInPage << " ||| ";
+                    // cout <<"Page " << i << "; OS: " << entry.pageOffset << ", RIP: " << entry.recordsInPage << " ||| ";
                     i++;
                 }
 
@@ -378,7 +345,7 @@ class StorageBufferManager {
                     cerr << "PageDirectory.deserialize: Error: Failed to read page directory from file.\n";
                     exit(-1);
                 }
-                cout << "PageDirectory.deserialize: Finished reading PageDirectory. Current offset: " << file.tellg() << endl << endl;
+                // cout <<"PageDirectory.deserialize: Finished reading PageDirectory. Current offset: " << file.tellg() << endl << endl;
 
             }
         };
@@ -410,11 +377,11 @@ class StorageBufferManager {
         // Returns the size of the data vector by counting non-sentinel values
         // Does not modify data
         int dataSize(const vector<char>& data, char sentinelValue) {
-            //cout << "dataSize begin" << endl;
+            //// cout <<"dataSize begin" << endl;
             return count_if(data.begin(), data.end(), [sentinelValue](char value) {
             return value != sentinelValue;
             });
-            //cout << "dataSize end" << endl;
+            //// cout <<"dataSize end" << endl;
         }
 
         // Helper function to check if the offset array is empty
@@ -614,8 +581,8 @@ class StorageBufferManager {
             auto recordString = record.toString();
             size_t recordSize = recordString.size();
 
-            cout << "\naddRecord:: begin\n";
-            cout << "addRecord:: recordString size: " << recordSize << endl;
+            // cout <<"\naddRecord:: begin\n";
+            // cout <<"addRecord:: recordString size: " << recordSize << endl;
 
             // Error check if there's enough space left in the page
             if (recordSize > static_cast<size_t>(pageHeader.spaceRemaining)) {
@@ -650,8 +617,8 @@ class StorageBufferManager {
                 pageHeader.recordsInPage += 1;
                 pageHeader.spaceRemaining -= recordSize;
 
-                cout << "addRecord:: offsetArray size: " << offsetArray.size() << "\n";
-                cout << "addRecord:: offsetArray capacity: " << offsetArray.capacity() << "\n";
+                // cout <<"addRecord:: offsetArray size: " << offsetArray.size() << "\n";
+                // cout <<"addRecord:: offsetArray capacity: " << offsetArray.capacity() << "\n";
 
                 // UPDATE: OFFSET ARRAY
                 // Append recordInsertOffset to end of offset array. This should point to the beginning of the record.
@@ -667,8 +634,8 @@ class StorageBufferManager {
                 } */
 
                 incrementRecordCount();
-                cout << "addRecord:: Incremented record count: " << recordCount << "\n";
-                cout << "addRecord:: end\n";
+                // cout <<"addRecord:: Incremented record count: " << recordCount << "\n";
+                // cout <<"addRecord:: end\n";
                 return true;
 
 
@@ -691,7 +658,7 @@ class StorageBufferManager {
 
             // offsetSize is the number of valid entries in the offsetArray
             int writeRecordsToFile(ofstream& outputFile, int offsetSize) {
-                cout << "\nwriteRecordsToFile:: entries in offsetArray: " << offsetSize << "\n";
+                // cout <<"\nwriteRecordsToFile:: entries in offsetArray: " << offsetSize << "\n";
 
                 // Error check stream state
                 if (!outputFile.is_open()) {
@@ -699,10 +666,10 @@ class StorageBufferManager {
                     return -1; // Indicate error
                 }
 
-                cout << "writeRecordsToFile:: Writing page " << pageNumber << " to file...\n";
+                // cout <<"writeRecordsToFile:: Writing page " << pageNumber << " to file...\n";
                 for (int i = 0; i < this->getDataElems(); i++) {
                     outputFile.write(reinterpret_cast<const char*>(&data[i]), sizeof(data[i]));
-                    cout << data[i];
+                    // cout << data[i];
                 }
 
                 /*
@@ -724,7 +691,7 @@ class StorageBufferManager {
                 */
 
                 // Optionally, return the new offset after writing, if needed
-                cout << "\n\nwriteRecordsToFile:: endOffset of page on DISK: " << outputFile.tellp() << "\n";
+                // cout <<"\n\nwriteRecordsToFile:: endOffset of page on DISK: " << outputFile.tellp() << "\n";
                 return outputFile.tellp();
             }
 
@@ -815,7 +782,7 @@ class StorageBufferManager {
                     pageOffset = file.tellp();
                     // Empty page. End loop.
                     if (currentPage->dataVectorEmpty() /* or currentPage->recordCount == 0 */) {
-                        cout << "dumpPages:: Page " << currentPage->getPageNumber() << " is empty. breaking...\n";
+                        // cout <<"dumpPages:: Page " << currentPage->getPageNumber() << " is empty. breaking...\n";
                         break;
                     }
 
@@ -823,29 +790,30 @@ class StorageBufferManager {
                     dummyVal = currentPage->writeRecordsToFile(file, currentPage->offsetSize());
 
                     // Diagnostic print statements: page offset and number of offsets in page offset array
-                    cout << "\ndumpPages::pageOffset: " << pageOffset <<
-                    ". offsetSize: " << currentPage->offsetSize() <<  "\n";
+                    // cout <<"\ndumpPages::pageOffset: " << pageOffset <<
+                    //". offsetSize: " << currentPage->offsetSize() <<  "\n";
                     
                     // Error check: If pageOffset is negative stream failed to open: print error and return false
                     if (pageOffset < 0){
                         cerr << "Failed to write page records to file.\n";
                         return false;
-                    } else {
-                        cout << "dumpPages:: pageOffset " << pageOffset << " >= 0\n";
-                    }
+                    } //else {
+                       // cout << "dumpPages:: pageOffset " << pageOffset << " >= 0\n";
+                    //}
 
                     // Update page count for new page directory entry
                     int currentPageRecordCount = currentPage->getRecordCount();
                     
                     // Update the page directory with new entry
                     
-                    cout << "dumpPages::Adding page directory entry. Offset: " << pageOffset << "\n";
+                    // cout <<"dumpPages::Adding page directory entry. Offset: " << pageOffset << "\n";
                     if (pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file) == -1){
                         cout << "dumpPages::Error: entries capacity exceeded. Dynamic calculation failed.\n";
                         exit(-1);
                     }
 
                     // Diagnostic print statements: print info of most recent page added to page directory
+                    /*
                     if (pageDirectory->entries[pageDirectory->entryCount].pageOffset != -1) {
                     cout << "dumpPages:: addPageDirectory successful. Printing most recent entry added to page directory:\n";
                     cout << "dumpPages::pageDirectory->entries[" << pageDirectory->entryCount << "].pageOffset: " << pageDirectory->entries[pageDirectory->entryCount].pageOffset << "\n";
@@ -854,6 +822,7 @@ class StorageBufferManager {
                     cout << "Assert: " << pageDirectory->entries[pageDirectory->entryCount].recordsInPage << " == " << currentPageRecordCount << "\n\n";
                     break;
                     }
+                    */
                     
 
                     pagesWrittenToFile++;
@@ -878,17 +847,17 @@ class StorageBufferManager {
             Test function: Use to confirm page is being filled properly. 
             */
             void printMainMemory() {
-                cout << "Printing main memory contents...\n";
+                // cout <<"Printing main memory contents...\n";
                 Page* page = head;
                 while (page != nullptr) {
                     // Print the page number as a header for each page's content
-                    cout << "\n\nPrinting contents of Page Number: " << page->getPageNumber() << endl;
+                    // cout <<"\n\nPrinting contents of Page Number: " << page->getPageNumber() << endl;
                     // Now, use the printPageContentsByOffset method to print the contents of the current page
                     page->printPageContentsByOffset();
                     // Move to the next page in the list
                     page = page->getNextPage();
                 }
-                cout << "End of main memory contents.\n";
+                // cout <<"End of main memory contents.\n";
             }
 
         }; // End of PageList definition
@@ -928,7 +897,7 @@ class StorageBufferManager {
 
         void loadMemoryPage(ifstream & file, Page * page, int beginOffset, int endOffset, bool lastPage = false) {
             // Error check: If file cannot be opened, print error and exit
-            cout << "loadMemoryPage begin" << endl;
+            // cout <<"loadMemoryPage begin" << endl;
             if (!file.is_open()) {
                 cerr << "Error opening file for reading.\n";
                 exit(-1);
@@ -943,19 +912,19 @@ class StorageBufferManager {
 
 
             // Test Prints
-            cout << "\nloadMemoryPage:: beginOffset: " << beginOffset << ".\n";
-            cout << "loadMemoryPage:: endOffset: " << endOffset << ".\n";
+            // cout <<"\nloadMemoryPage:: beginOffset: " << beginOffset << ".\n";
+            // cout <<"loadMemoryPage:: endOffset: " << endOffset << ".\n";
 
             file.seekg(beginOffset, ios::beg);
-            cout << "loadMemoryPage:: Current file offset after seekg to beginOffset: " << file.tellg() << ".\n";
+            // cout <<"loadMemoryPage:: Current file offset after seekg to beginOffset: " << file.tellg() << ".\n";
 
             // Read the page from the file in page in memory
-            cout << "loadMemoryPage:: Reading page " << page->getPageNumber() << " from file. " << size << " bytes; offset: " << beginOffset << ".\n";
-            cout << "loadMemoryPage:: Current file offset: " << file.tellg() << ".\n";
+            // cout <<"loadMemoryPage:: Reading page " << page->getPageNumber() << " from file. " << size << " bytes; offset: " << beginOffset << ".\n";
+            // cout <<"loadMemoryPage:: Current file offset: " << file.tellg() << ".\n";
             if (!lastPage) {
                 for (int i = 0; i < size; i++) {
                     file.read(reinterpret_cast<char*>(&page->data[i]), sizeof(page->data[i]));
-                    cout << page->data[i];
+                    // cout <<page->data[i];
                     //if (page->getPageNumber() == 0) {
                     //    cout << "(" << i + beginOffset << ": " << page->data[i] << ")";
                     //} else {
@@ -965,7 +934,7 @@ class StorageBufferManager {
             else if (lastPage){
                      for (int i = 0; i < size; i++) {
                     file.read(reinterpret_cast<char*>(&page->data[i]), sizeof(page->data[i]));
-                    cout << page->data[i];
+                    // cout <<page->data[i];
                     //if (page->getPageNumber() == 0) {
                     //    cout << "(" << i + beginOffset << ": " << page->data[i] << ")";
                     //} else {
@@ -973,12 +942,12 @@ class StorageBufferManager {
                 }
 
             }
-            cout << "\n\nloadMemoryPage end" << endl;
+            // cout <<"\n\nloadMemoryPage end" << endl;
         }
 
         void searchID(int searchID){
            
-            cout << "searchID:: Records in file: " << get<2>(initializationResults) << ".\n";
+            // cout <<"searchID:: Records in file: " << get<2>(initializationResults) << ".\n";
             cout << "Searching for Record ID: " << searchID << endl;
             // instantiate objects
             FileHeader * header = new FileHeader();
@@ -1001,37 +970,39 @@ class StorageBufferManager {
 
             // Deserialize file header and page directory
             header->deserialize(dataFile);
-            cout << "searchID:: Number of records on file: " << header->totalNumberOfPages << ".\n";
+            // cout <<"searchID:: Number of records on file: " << header->totalNumberOfPages << ".\n";
             pageDirectory->deserialize(dataFile, header->pageDirectoryOffset);
 
-            cout << "searchID:: Deserialized file header and page directory test prints: \n\n";
-            cout << "searchID:: header->totalNumberOfPages: " << header->totalNumberOfPages << endl;
-            cout << "searchID:: header->pageDirectoryOffset: " << header->pageDirectoryOffset << endl;
-            cout << "searchID:: pageDirectory->entryCount: " << pageDirectory->entryCount << endl;
-            cout << "searchID:: pageDirectory->nextPageDirectoryOffset: " << pageDirectory->nextPageDirectoryOffset << endl;
-            cout << "searchID:: pageDirectory->entries[0].pageOffset: " << pageDirectory->entries[0].pageOffset << endl;
-            cout << "searchID:: pageDirectory->entries[0].recordsInPage: " << pageDirectory->entries[0].recordsInPage << endl;
-            cout << "searchID:: End deserialized file header and page directory test prints.\n\n";
+            // cout <<"searchID:: Deserialized file header and page directory test prints: \n\n";
+            // cout <<"searchID:: header->totalNumberOfPages: " << header->totalNumberOfPages << endl;
+            // cout <<"searchID:: header->pageDirectoryOffset: " << header->pageDirectoryOffset << endl;
+            // cout <<"searchID:: pageDirectory->entryCount: " << pageDirectory->entryCount << endl;
+            // cout <<"searchID:: pageDirectory->nextPageDirectoryOffset: " << pageDirectory->nextPageDirectoryOffset << endl;
+            // cout <<"searchID:: pageDirectory->entries[0].pageOffset: " << pageDirectory->entries[0].pageOffset << endl;
+            // cout <<"searchID:: pageDirectory->entries[0].recordsInPage: " << pageDirectory->entries[0].recordsInPage << endl;
+            // cout <<"searchID:: End deserialized file header and page directory test prints.\n\n";
             
 
             // Loop through page directories
             while (pageDirectory != nullptr) {
-                cout << "searchID:: Looping through page directories...\n";
-                cout << "searchID:: entryCount: " << pageDirectory->entryCount << " pages in directory\n";
+                // cout <<"searchID:: Looping through page directories...\n";
+                // cout <<"searchID:: entryCount: " << pageDirectory->entryCount << " pages in directory\n";
 
                 // Loop through page directory entries
                 for (int entryIndex = 0; entryIndex < pageDirectory->entryCount - 1; entryIndex++) {
 
-                    cout << "searchID:: Looping through page directory entries...\n\n";
+                    // cout <<"searchID:: Looping through page directory entries...\n\n";
                     
                     // Error: Break if offset for page referenced in page directory is sentinel value / uninitialized
                     if (pageDirectory->entries[entryIndex].pageOffset == -1) {
                         cout << "searchID:: Error: Page offset is invalid. Breaking...\n";
                         // Diagnostic print
+                        /*
                         for (int i = 0; i < pageDirectory->entries.size(); i++) {
                             cout << "searchID:: pageDirectory->entries[" << i << "].pageOffset: " << pageDirectory->entries[i].pageOffset << endl;
                             cout << "searchID:: pageDirectory->entries[" << i << "].recordsInPage: " << pageDirectory->entries[i].recordsInPage << endl; 
                         }
+                        */
                         break;
                     }
 
@@ -1039,12 +1010,12 @@ class StorageBufferManager {
                     begIndex = pageDirectory->entries[entryIndex].pageOffset;
                     // Offset on DISK of end of page referenced in page directory
                     endIndex = pageDirectory->entries[entryIndex + 1].pageOffset;
-                    cout << "searchID:: begIndex: " << begIndex << endl;
-                    cout << "searchID:: endIndex: " << endIndex << endl;
+                    // cout <<"searchID:: begIndex: " << begIndex << endl;
+                    // cout <<"searchID:: endIndex: " << endIndex << endl;
 
                     // If last main memory page, load page from disk then search full main memory
                     if (currentPage->getNextPage() == nullptr) {
-                        cout << "searchID:: Last page reached. Loading and searching...\n";
+                        // cout <<"searchID:: Last page reached. Loading and searching...\n";
                         loadMemoryPage(dataFile, currentPage, begIndex, endIndex);
                         searchMainMemory(pageList->head, searchID, matchingRecords);
                         pageList->resetPages();
@@ -1053,7 +1024,7 @@ class StorageBufferManager {
                     // Otherwise just load the page
                     // Advance to next page
                     else if (currentPage != nullptr) {
-                        cout << "searchID:: Loading and advancing to next page...\n";
+                        // cout <<"searchID:: Loading and advancing to next page...\n";
                         // Load a single page, advance to next page
                         loadMemoryPage(dataFile, currentPage, begIndex, endIndex);
                         currentPage = currentPage->nextPage;
@@ -1077,27 +1048,27 @@ class StorageBufferManager {
                     currentPage = pageList->head;
                 }
                 
-                cout << "searchID:: searching last batch of records...\n\n";
+                // cout <<"searchID:: searching last batch of records...\n\n";
                 begIndex = dataFile.tellg();
                 char ch;
                 endIndex = begIndex;
                 // dataFile.seekg(begIndex, ios::beg);
                
                 while (dataFile.get(ch)) {
-                    cout << ch;
+                    // cout <<ch;
                     endIndex = dataFile.tellg();
                 }
                 dataFile.seekg(begIndex, ios::beg);
 
-                cout << "\n\nsearchID:: begIndex: " << begIndex << endl;
-                cout << "searchID:: endIndex: " << endIndex << endl;
+                // cout <<"\n\nsearchID:: begIndex: " << begIndex << endl;
+                // cout <<"searchID:: endIndex: " << endIndex << endl;
                 loadMemoryPage(dataFile, currentPage, begIndex, endIndex);
                 searchMainMemory(pageList->head, searchID, matchingRecords);
                 // Move to the next page directory
-                cout << "searchID:: Moving to next page directory...\n";
+                // cout <<"searchID:: Moving to next page directory...\n";
                 pageDirectory = pageDirectory->nextDirectory;
             }
-            cout << "searchID end" << endl;
+            // cout <<"searchID end" << endl;
 
             // Print matching records
             if (matchingRecords.empty()) {
@@ -1113,10 +1084,11 @@ class StorageBufferManager {
         // Read records from file and search by ID
         // There may be duplicates, so search the entire file
         void searchMainMemory(Page* page, int searchID, vector<Record>& matchingRecords) {
-            cout << "searchMainMemory begin:: searching Page " << page->pageNumber << endl;
+            // cout <<"searchMainMemory begin:: searching Page " << page->pageNumber << endl;
 
             int i = 0;
 
+            // Print the contents of the page
             while (i < page->data.size()) {
                 cout << page->data[i];
                 i++;
