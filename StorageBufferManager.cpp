@@ -2,6 +2,7 @@
 
 // Define static members
 tuple<vector<int>, unsigned long long, unsigned long long> StorageBufferManager::initializationResults;
+int StorageBufferManager::maxEntries;
 int StorageBufferManager::maxPagesOnDisk;
 
 int StorageBufferManager::Page::dataVectorSize;

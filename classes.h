@@ -79,6 +79,7 @@ class StorageBufferManager {
         int pagesWrittenToFile = 0; // number of pages written to file. Track so that written pages are indexed by page number.
         tuple<vector<int>, unsigned long long, unsigned long long> static initializationResults;
         int static maxPagesOnDisk;
+        int static maxEntries;
     
 
 
