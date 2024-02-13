@@ -949,7 +949,8 @@ class StorageBufferManager {
         }
 
         void searchID(int searchID){
-            cout << "\n\n\n\nsearchID begin" << endl;
+           
+            cout << "searchID:: Records in file: " << get<2>(initializationResults) << ".\n";
             cout << "Searching for Record ID: " << searchID << endl;
             // instantiate objects
             FileHeader * header = new FileHeader();
@@ -972,6 +973,7 @@ class StorageBufferManager {
 
             // Deserialize file header and page directory
             header->deserialize(dataFile);
+            cout << "searchID:: Number of records on file: " << header->totalNumberOfPages << ".\n";
             pageDirectory->deserialize(dataFile, header->pageDirectoryOffset);
 
             cout << "searchID:: Deserialized file header and page directory test prints: \n\n";
