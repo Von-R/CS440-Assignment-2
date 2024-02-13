@@ -623,8 +623,9 @@ class StorageBufferManager {
                 
                 for (int i = 0; i < offsetArray.size() - 1; i++) {
                     if (offsetArray[i] == -1) {
+                        cout << "Index " << i << " of offsetArray is -1\n";
                         offsetArray[i+1] = offsetOfNextRecord + recordSize;
-                        cout << "addRecord:: offsetArray[" << i << "] == " << offsetOfNextRecord + recordSize << "\n";
+                        cout << "addRecord:: offsetArray[" << i + 1 << "] == " << offsetOfNextRecord + recordSize << "\n";
                         break;
                     }
                 }
