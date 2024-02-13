@@ -369,7 +369,7 @@ class StorageBufferManager {
                     // how many records can fit in a page if all records are max size
                     int minRecords = (BLOCK_SIZE) / maxRecordSize;
                     int maxE = fileCount / minRecords + 1;
-                    cout << "initializeValues:: maxPages: " << maxPages << endl;
+                    cout << "initializeValues:: maxEntries: " << maxE << endl;
                     //int minPages = (BLOCK_SIZE - static_cast<unsigned long long>(maxRecords) * sizeof(int) - sizeof(Page::PageHeader)) / maxRecordSize;
                     // Returns tuple containing offset array of size maxRecords, filled with 0's, and the size of the array
                     //         the total count of all records
