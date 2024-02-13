@@ -597,6 +597,11 @@ class StorageBufferManager {
         // Method to add a record to the page
         bool addRecord(const Record& record, bool lastRecordInPage = false) {
             cout << "\naddRecord:: begin\n";
+
+            if (recordCount == 0) {
+                offsetArray[0] = 0;
+            }
+
             auto recordString = record.toString();
             
             size_t recordSize = recordString.size();
