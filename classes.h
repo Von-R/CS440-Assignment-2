@@ -931,16 +931,18 @@ class StorageBufferManager {
 
 
             // Test Prints
-            cout << "loadMemoryPage:: beginOffset: " << beginOffset << ".\n";
+            cout << "\nloadMemoryPage:: beginOffset: " << beginOffset << ".\n";
             cout << "loadMemoryPage:: endOffset: " << endOffset << ".\n";
 
             file.seekg(beginOffset, ios::beg);
+            cout << "loadMemoryPage:: Current file offset after seekg to beginOffset: " << file.tellg() << ".\n";
 
             // Read the page from the file in page in memory
             cout << "loadMemoryPage:: Reading page " << page->getPageNumber() << " from file. " << size << " bytes; offset: " << beginOffset << ".\n";
             cout << "loadMemoryPage:: Current file offset: " << file.tellg() << ".\n";
             for (int i = 0; i < size; i++) {
                 file.read(reinterpret_cast<char*>(&page->data[i]), sizeof(page->data[i]));
+                cout << page->data[i];
                 //if (page->getPageNumber() == 0) {
                 //    cout << "(" << i + beginOffset << ": " << page->data[i] << ")";
                 //} else {
