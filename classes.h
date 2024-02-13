@@ -595,7 +595,7 @@ class StorageBufferManager {
         }
 
         // Method to add a record to the page
-        bool addRecord(const Record& record, bool lastRecordInPage) {
+        bool addRecord(const Record& record, bool lastRecordInPage = false) {
             cout << "addRecord:: begin\n";
             auto recordString = record.toString();
             
@@ -617,6 +617,7 @@ class StorageBufferManager {
             // Ensure the insertion does not exceed the vector's predefined max size
             if (offsetOfNextRecord + recordSize <= data.size()) {
                 cout  << "addRecord:: \nAdding record to page: " << this->pageNumber << "\n";
+                // Copies record string to data vector at the offset provided
                 std::copy(recordString.begin(), recordString.end(), data.begin() + offsetOfNextRecord);
                 
                 cout << "addRecord:: Offset of next record: " << offsetOfNextRecord << "\n";
@@ -625,24 +626,11 @@ class StorageBufferManager {
                 pageHeader.spaceRemaining -= recordSize;
                 //offsetArray.push_back(offsetOfNextRecord);
 
-                if (lastRecordInPage) {
-                    cout << "addRecord:: Last record in page. Append offset to end of record to offset array.\n";
-                    int i = 0;
-                    while (offsetArray[i] != -1) {
-                        i++;
-                    }
-
-                    offsetArray[i] = offsetOfNextRecord + recordSize;
-
-                    cout << "Print offset array for page " << this->pageNumber << ":\n";
-                    for (int elem : offsetArray) {
-                        cout << elem << " ";
-                    }
-
-                } else if (!addOffsetToFirstSentinel(offsetArray, offsetOfNextRecord)) {
+                if (!addOffsetToFirstSentinel(offsetArray, offsetOfNextRecord)) {
                     std::cerr << "addRecord:: Error: Unable to add offset to offsetArray.\n";
                     return false;
-                }
+                } else {
+                    cout << "addRecord:: Offset to end of the " << pageHeader.recordsInPage << " record in the page: " << offsetArray.back() << "\n";
 
                 cout << "addRecord:: Offset to end of the " << pageHeader.recordsInPage << " record in the page: " << offsetArray.back() << "\n";
 
@@ -1166,13 +1154,13 @@ class StorageBufferManager {
 
                     // While current page full and page not last page
                     while (spaceRemaining < recordSize && currentPage->getPageNumber() < maxPages - 1) {
-                     
+                        
                         // Advance to next page
                         currentPage = currentPage->goToNextPage();
                         // Recalculate space remaining on new page
                         spaceRemaining = currentPage->calcSpaceRemaining();
                         // Add record to new page
-                        if (!currentPage->addRecord(record, false)) {
+                        if (!currentPage->addRecord(record)) {
                             cerr << "Error: Size mismatch on NEXT PAGE ADD. Terminating..." << endl;
                             exit(-1);
                         } else {
@@ -1201,7 +1189,7 @@ class StorageBufferManager {
                         // Add record to page
                         //// cout  << "CreateFromFile: Adding record to page...\n";
                         
-                        if (!currentPage->addRecord(record, true)) {
+                        if (!currentPage->addRecord(record)) {
                             cerr << "Size mismatch. Terminating..." << endl;
                             exit(-1);
                         } else {
