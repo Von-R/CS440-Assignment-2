@@ -592,11 +592,11 @@ class StorageBufferManager {
 
             // Calculate the offset for the new record
             int recordInsertOffset = findOffsetOfNextRecord(data, sentinelValue);
-            cout  << "addRecord:: Inserting record at offset: " << recordInsertOffset << endl;
+            // cout  << "addRecord:: Inserting record at offset: " << recordInsertOffset << endl;
 
             // Ensure the insertion does not exceed the vector's predefined max size
             if (recordInsertOffset + recordSize <= data.size()) {
-                cout  << "addRecord:: \nAdding record to page: " << this->pageNumber << "\n";
+                 // cout  << "addRecord:: \nAdding record to page: " << this->pageNumber << "\n";
 
                 // UPDATE: DATA VECTOR
                 // Copies record string to data vector, inserting at the offset provided
