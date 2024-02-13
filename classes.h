@@ -368,14 +368,14 @@ class StorageBufferManager {
 
                     // how many records can fit in a page if all records are max size
                     int minRecords = (BLOCK_SIZE) / maxRecordSize;
-                    int maxEntries = fileCount / minRecords + 1;
+                    int maxE = fileCount / minRecords + 1;
                     cout << "initializeValues:: maxPages: " << maxPages << endl;
                     //int minPages = (BLOCK_SIZE - static_cast<unsigned long long>(maxRecords) * sizeof(int) - sizeof(Page::PageHeader)) / maxRecordSize;
                     // Returns tuple containing offset array of size maxRecords, filled with 0's, and the size of the array
                     //         the total count of all records
                     //         the max size of record, used later to calc min number of pages needed
                     // cout << "initializeValues end" << endl;
-                    return make_tuple(vector<int>(maxRecords + 1, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(maxEntries));
+                    return make_tuple(vector<int>(maxRecords + 1, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(maxE));
 
 
                 };
@@ -446,6 +446,8 @@ class StorageBufferManager {
 
             // size of offset array, 2nd element of tuple returned by initializeValues
             offsetArraySize = get<1>(initializationResults); // Update this based on actual logic
+
+             // Update this based on actual logic
 
             // Size of data vector; calculated based on the size of the offset array and the size of the page header
             dataVectorSize = page_size - offsetArraySize - sizeof(PageHeader);
