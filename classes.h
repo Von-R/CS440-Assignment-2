@@ -256,7 +256,6 @@ class StorageBufferManager {
                 // Then write each entry
                 cout << "PageDirectory.serialize: Writing page directory entries to file: \n";
                 for (const auto& entry : entriesCopy) {
-                    entry = entries[i];
                     if (entry.pageOffset == -1) {
                         break;
                     }
