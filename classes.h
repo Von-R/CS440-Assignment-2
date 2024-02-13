@@ -368,7 +368,7 @@ class StorageBufferManager {
                     //         the total count of all records
                     //         the max size of record, used later to calc min number of pages needed
                     // cout << "initializeValues end" << endl;
-                    return make_tuple(std::vector<int>(maxRecords, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(fileCount), 
+                    return make_tuple(std::vector<int>(maxRecords + 1, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(fileCount), 
                     static_cast<unsigned long long>(maxRecordSize));
 
 
