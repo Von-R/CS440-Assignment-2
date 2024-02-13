@@ -601,8 +601,7 @@ class StorageBufferManager {
             
             size_t recordSize = recordString.size();
 
-            cout << "addRecord: Elements in offsets array: " << offsetSize() << "\n";
-            cout << "addRecord: offsetArray.size(): " << offsetArray.size() << "\n";
+            
             cout << "addRecord:: recordString size: " << recordSize << endl;
             // Check if there's enough space left in the page
             if (recordSize > static_cast<size_t>(pageHeader.spaceRemaining)) {
@@ -637,6 +636,8 @@ class StorageBufferManager {
                 
                 pageHeader.spaceRemaining -= recordSize;
                 //offsetArray.push_back(offsetOfNextRecord);
+                cout << "addRecord: Elements in offsets array: " << offsetSize() << "\n";
+                cout << "addRecord: offsetArray.size(): " << offsetArray.size() << "\n";
                 if (offsetSize() == offsetArray.size()) {
                     cout << "addRecord:: offsetArray is full. Added offset to end of last record: " << offsetOfNextRecord + recordSize << "\n";
                     offsetArray.push_back(offsetOfNextRecord + recordSize);
