@@ -596,7 +596,7 @@ class StorageBufferManager {
 
         // Method to add a record to the page
         bool addRecord(const Record& record, bool lastRecordInPage = false) {
-            cout << "addRecord:: begin\n";
+            cout << "\naddRecord:: begin\n";
             auto recordString = record.toString();
             
             size_t recordSize = recordString.size();
@@ -607,9 +607,6 @@ class StorageBufferManager {
                 return false;
             }
             
-
-
-
             // Calculate the offset for the new record
             int offsetOfNextRecord = findOffsetOfNextRecord(data, sentinelValue);
             cout  << "addRecord:: offsetOfNextRecord: " << offsetOfNextRecord << endl;
@@ -620,9 +617,18 @@ class StorageBufferManager {
                 // Copies record string to data vector at the offset provided
                 std::copy(recordString.begin(), recordString.end(), data.begin() + offsetOfNextRecord);
                 
-                cout << "addRecord:: Offset of next record: " << offsetOfNextRecord << "\n";
+                cout << "addRecord:: Offset of add: " << offsetOfNextRecord << "\n";
+
+                for (int i = 0; i < offsetArray.size(); i++) {
+                    if (offsetArray[i] == -1) {
+                        offsetArray[i] = offsetOfNextRecord + recordSize;
+                        cout << "addRecord:: offsetArray[" << i << "] == " << offsetOfNextRecord + recordSize << "\n";
+                        break;
+                    }
+                }
+
                 pageHeader.recordsInPage += 1;
-                //// cout  << "addRecord:: spaceRemaining - recordSize: " << pageHeader.spaceRemaining << " - " << recordSize << " = " << pageHeader.spaceRemaining - recordSize << endl;
+                
                 pageHeader.spaceRemaining -= recordSize;
                 //offsetArray.push_back(offsetOfNextRecord);
 
