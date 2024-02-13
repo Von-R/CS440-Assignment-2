@@ -582,9 +582,8 @@ class StorageBufferManager {
             return 0;
         }
 
-        // Method to add an offset to the end of offsetArray
-        // Bespoke method due to array being filled with sentinel values
-        bool addOffsetToFirstSentinel(vector<int>& offsetArray, int newOffset) {
+        // Returns offset to first sentinel value in the offsetArray
+        bool appendToOffsetArray(vector<int>& offsetArray, int newOffset) {
             for (size_t i = 0; i < offsetArray.size(); ++i) {
                 if (offsetArray[i] == -1) { // Sentinel value found
                     offsetArray[i] = newOffset; // Replace with new offset
@@ -596,32 +595,31 @@ class StorageBufferManager {
 
         // Method to add a record to the page
         bool addRecord(const Record& record, bool lastRecordInPage = false) {
-            cout << "\naddRecord:: begin\n";
+
             auto recordString = record.toString();
-            
             size_t recordSize = recordString.size();
 
-            
+            cout << "\naddRecord:: begin\n";
             cout << "addRecord:: recordString size: " << recordSize << endl;
-            // Check if there's enough space left in the page
+
+            // Error check if there's enough space left in the page
             if (recordSize > static_cast<size_t>(pageHeader.spaceRemaining)) {
                 cerr << "addRecord::Error: Not enough space in the page to add the record.\n";
                 return false;
             }
 
-            
             // Calculate the offset for the new record
             int recordInsertOffset = findOffsetOfNextRecord(data, sentinelValue);
-            cout  << "addRecord:: recordInsertOffset: " << recordInsertOffset << endl;
+            cout  << "addRecord:: Inserting record at offset: " << recordInsertOffset << endl;
 
             // Ensure the insertion does not exceed the vector's predefined max size
             if (recordInsertOffset + recordSize <= data.size()) {
                 cout  << "addRecord:: \nAdding record to page: " << this->pageNumber << "\n";
-                // Copies record string to data vector at the offset provided
+
+                // UPDATE: DATA VECTOR
+                // Copies record string to data vector, inserting at the offset provided
                 copy(recordString.begin(), recordString.end(), data.begin() + recordInsertOffset);
                 
-                cout << "addRecord:: Offset of add: " << recordInsertOffset << "\n";
-
                 /*
                 for (int i = 0; i < offsetArray.size() - 1; i++) {
                     if (offsetArray[i] == -1) {
@@ -633,21 +631,19 @@ class StorageBufferManager {
                 }
                 */
                 
+                // Update page header members
                 pageHeader.recordsInPage += 1;
-                
                 pageHeader.spaceRemaining -= recordSize;
-                //offsetArray.push_back(recordInsertOffset);
+
                 cout << "addRecord:: offsetArray size: " << offsetArray.size() << "\n";
                 cout << "addRecord:: offsetArray capacity: " << offsetArray.capacity() << "\n";
-                if (offsetSize() == offsetArray.size()) {
-                    cout << "addRecord:: offsetArray is full. Added offset to end of last record: " << recordInsertOffset + recordSize << "\n";
-                    offsetArray.push_back(recordInsertOffset + recordSize);
-                }
-                // Add the offset to the offsetArray of the next sentinel. This should point to the end of the record
-                //if (!addOffsetToFirstSentinel(offsetArray, recordInsertOffset)) {
-                //    cerr << "addRecord:: Error: Unable to add offset to offsetArray.\n";
-                //    return false;
-                //} 
+
+                // UPDATE: OFFSET ARRAY
+                // Append recordInsertOffset to end of offset array. This should point to the beginning of the record.
+                if (!appendToOffsetArray(offsetArray, recordInsertOffset)) {
+                    cerr << "addRecord:: Error: Unable to add offset to offsetArray.\n";
+                    return false;
+                } 
                 /* else {
 
                     //cout << "addRecord:: Offset to end of the " << pageHeader.recordsInPage << " record in the page: " << offsetArray.back() << "\n";
@@ -677,13 +673,24 @@ class StorageBufferManager {
 
             // Method to write the contents of this page to a file, return 
             // offset to end of page in file
+
+            // offsetSize is the number of valid entries in the offsetArray
             int writeRecordsToFile(ofstream& outputFile, int offsetSize) {
-                cout << "\nwriteRecordsToFile:: entries in offsetArray: " << this->offsetSize() << "\n";
+                cout << "\nwriteRecordsToFile:: entries in offsetArray: " << offsetSize << "\n";
+
+                // Error check stream state
                 if (!outputFile.is_open()) {
                     cerr << "Error: Output file is not open for writing.\n";
                     return -1; // Indicate error
                 }
 
+                cout << "writeRecordsToFile:: Writing page " << pageNumber << " to file...\n";
+                for (int i = 0; i < data.size(); i++) {
+                    outputFile.write(reinterpret_cast<const char*>(&data[i]), sizeof(data[i]));
+                    cout << data[i];
+                }
+
+                /*
                 for (int i = 0; i < offsetSize - 1; ++i) { // -1 to prevent accessing beyond the last valid index
                     int startOffset = offsetArray[i];
                     cout << "\nwriteRecordsToFile::startOffset: " << startOffset << ". offsetArray[" << i << "].\n";
@@ -699,6 +706,7 @@ class StorageBufferManager {
                         }
                     }
                 }
+                */
 
                 // Optionally, return the new offset after writing, if needed
                 cout << "\n\nwriteRecordsToFile:: endOffset of page on DISK: " << outputFile.tellp() << "\n";
