@@ -620,7 +620,7 @@ class StorageBufferManager {
                 
                 cout << "addRecord:: Offset of add: " << offsetOfNextRecord << "\n";
 
-                /*
+                
                 for (int i = 0; i < offsetArray.size(); i++) {
                     if (offsetArray[i] == -1) {
                         offsetArray[i] = offsetOfNextRecord + recordSize;
@@ -628,7 +628,7 @@ class StorageBufferManager {
                         break;
                     }
                 }
-                */
+                
 
                 pageHeader.recordsInPage += 1;
                 
@@ -639,10 +639,10 @@ class StorageBufferManager {
                     offsetArray.push_back(offsetOfNextRecord + recordSize);
                 }
                 // Add the offset to the offsetArray of the next sentinel. This should point to the end of the record
-                if (!addOffsetToFirstSentinel(offsetArray, offsetOfNextRecord)) {
-                    std::cerr << "addRecord:: Error: Unable to add offset to offsetArray.\n";
-                    return false;
-                } 
+                //if (!addOffsetToFirstSentinel(offsetArray, offsetOfNextRecord)) {
+                //    std::cerr << "addRecord:: Error: Unable to add offset to offsetArray.\n";
+                //    return false;
+                //} 
                 /* else {
 
                     //cout << "addRecord:: Offset to end of the " << pageHeader.recordsInPage << " record in the page: " << offsetArray.back() << "\n";
