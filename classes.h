@@ -990,7 +990,7 @@ class StorageBufferManager {
                 cout << "searchID:: entryCount: " << pageDirectory->entryCount << " pages in directory\n";
 
                 // Loop through page directory entries
-                for (int entryIndex = 0; entryIndex < pageDirectory->entryCount - 2; entryIndex++) {
+                for (int entryIndex = 0; entryIndex < pageDirectory->entryCount - 1; entryIndex++) {
                     cout << "searchID:: Looping through page directory entries...\n\n";
                     
                     // Break if offset for page referenced in page directory is sentinel value / uninitialized
@@ -999,13 +999,14 @@ class StorageBufferManager {
                         // Diagnostic print
                         for (int i = 0; i < pageDirectory->entries.size(); i++) {
                             cout << "searchID:: pageDirectory->entries[" << i << "].pageOffset: " << pageDirectory->entries[i].pageOffset << endl;
-                            cout << "searchID:: pageDirectory->entries[" << i << "].recordsInPage: " << pageDirectory->entries[i].recordsInPage << endl;
-                            
+                            cout << "searchID:: pageDirectory->entries[" << i << "].recordsInPage: " << pageDirectory->entries[i].recordsInPage << endl; 
                         }
                         break;
                     }
 
+                    // Offset on DISK of beginning of page referenced in page directory
                     begIndex = pageDirectory->entries[entryIndex].pageOffset;
+                    // Offset on DISK of end of page referenced in page directory
                     endIndex = pageDirectory->entries[entryIndex + 1].pageOffset;
                     cout << "searchID:: begIndex: " << begIndex << endl;
                     cout << "searchID:: endIndex: " << endIndex << endl;
@@ -1030,6 +1031,8 @@ class StorageBufferManager {
                         exit(-1);
                     }
                 }
+                cout << "searchID:: searching last batch of records...\n";
+                searchMainMemory(pageList->head, searchID, matchingRecords);
                 // Move to the next page directory
                 cout << "searchID:: Moving to next page directory...\n";
                 pageDirectory = pageDirectory->nextDirectory;
