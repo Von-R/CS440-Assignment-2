@@ -1187,7 +1187,7 @@ class StorageBufferManager {
                     spaceRemaining = currentPage->calcSpaceRemaining();
                     //// cout  << "CreateFromFile: Space remaining on current page: " << spaceRemaining << endl;
 
-                    // While current page full and page not last page
+                    // While current page is full, and we're not on the last page, advance to next page
                     while (spaceRemaining < recordSize && currentPage->getPageNumber() < maxPages - 1) {
                         
                         // Advance to next page
@@ -1195,13 +1195,14 @@ class StorageBufferManager {
                         // Recalculate space remaining on new page
                         spaceRemaining = currentPage->calcSpaceRemaining();
                         // Add record to new page
+                        /*
                         if (!currentPage->addRecord(record)) {
                             cerr << "Error: Size mismatch on NEXT PAGE ADD. Terminating..." << endl;
                             exit(-1);
                         } else {
                             cout << "Record added to next page, page: " << currentPage->getPageNumber() << ": \n" << record.toString() << "\n";
-                        
                         }
+                        */
                     }
                     // Main memory full: no room for record on any pages
                     // Write contents to file, then 
