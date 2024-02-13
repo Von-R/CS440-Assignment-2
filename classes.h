@@ -926,7 +926,7 @@ class StorageBufferManager {
             return Record(fields);
         };
 
-        void loadMemoryPage(ifstream & file, Page * page, int beginOffset, int endOffset) {
+        void loadMemoryPage(ifstream & file, Page * page, int beginOffset, int endOffset, bool lastPage = false) {
             // Error check: If file cannot be opened, print error and exit
             cout << "loadMemoryPage begin" << endl;
             if (!file.is_open()) {
@@ -952,13 +952,26 @@ class StorageBufferManager {
             // Read the page from the file in page in memory
             cout << "loadMemoryPage:: Reading page " << page->getPageNumber() << " from file. " << size << " bytes; offset: " << beginOffset << ".\n";
             cout << "loadMemoryPage:: Current file offset: " << file.tellg() << ".\n";
-            for (int i = 0; i < size; i++) {
-                file.read(reinterpret_cast<char*>(&page->data[i]), sizeof(page->data[i]));
-                cout << page->data[i];
-                //if (page->getPageNumber() == 0) {
-                //    cout << "(" << i + beginOffset << ": " << page->data[i] << ")";
-                //} else {
-                //}
+            if (!lastPage) {
+                for (int i = 0; i < size; i++) {
+                    file.read(reinterpret_cast<char*>(&page->data[i]), sizeof(page->data[i]));
+                    cout << page->data[i];
+                    //if (page->getPageNumber() == 0) {
+                    //    cout << "(" << i + beginOffset << ": " << page->data[i] << ")";
+                    //} else {
+                    //}
+                }
+            }
+            else if (lastPage){
+                     for (int i = 0; i < size; i++) {
+                    file.read(reinterpret_cast<char*>(&page->data[i]), sizeof(page->data[i]));
+                    cout << page->data[i];
+                    //if (page->getPageNumber() == 0) {
+                    //    cout << "(" << i + beginOffset << ": " << page->data[i] << ")";
+                    //} else {
+                    //}
+                }
+
             }
             cout << "\n\nloadMemoryPage end" << endl;
         }
@@ -1067,6 +1080,7 @@ class StorageBufferManager {
                     cout << ch;
                     endIndex = dataFile.tellg();
                 }
+                dataFile.seekg(begIndex, ios::beg);
 
                 cout << "\n\nsearchID:: begIndex: " << begIndex << endl;
                 cout << "searchID:: endIndex: " << endIndex << endl;
