@@ -192,6 +192,7 @@ class StorageBufferManager {
             // Default constructor
             PageDirectory() : nextPageDirectoryOffset(-1), entries(maxPages), entryCount(0), nextDirectory(nullptr) {
                 pageDirectorySize = (3 * sizeof(int)) + (entries.capacity() * sizeof(PageDirectoryEntry));
+                cout << "PageDirectory:: Default constructor. Size of entry vector: " << entries.size() << "\n";
             }
 
             int getPageDirectorySize() {
