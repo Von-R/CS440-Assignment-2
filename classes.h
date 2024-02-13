@@ -86,7 +86,7 @@ class StorageBufferManager {
             // cout << "StorageBufferManager constructor begin" << endl;
 
             //initialize your variables
-            int maxPages = 3; // 3 pages in main memory at most 
+            //int maxPages = 3; // 3 pages in main memory at most 
             /*
                 This variable contains:
                     offset array of size maxRecords, filled with 0's
@@ -190,7 +190,7 @@ class StorageBufferManager {
             int pageDirectorySize;
 
             // Default constructor
-            PageDirectory() : nextPageDirectoryOffset(-1), entries(maxPages), entryCount(0), nextDirectory(nullptr) {
+            PageDirectory() : nextPageDirectoryOffset(-1), entries(maxEntries), entryCount(0), nextDirectory(nullptr) {
                 pageDirectorySize = (3 * sizeof(int)) + (entries.capacity() * sizeof(PageDirectoryEntry));
                 cout << "PageDirectory:: Default constructor. Size of entry vector: " << entries.size() << "\n";
             }
@@ -367,14 +367,14 @@ class StorageBufferManager {
 
                     // how many records can fit in a page if all records are max size
                     int minRecords = (BLOCK_SIZE) / maxRecordSize;
-                    int maxPages = fileCount / minRecords + 1;
+                    int maxEntries = fileCount / minRecords + 1;
                     cout << "initializeValues:: maxPages: " << maxPages << endl;
                     //int minPages = (BLOCK_SIZE - static_cast<unsigned long long>(maxRecords) * sizeof(int) - sizeof(Page::PageHeader)) / maxRecordSize;
                     // Returns tuple containing offset array of size maxRecords, filled with 0's, and the size of the array
                     //         the total count of all records
                     //         the max size of record, used later to calc min number of pages needed
                     // cout << "initializeValues end" << endl;
-                    return make_tuple(vector<int>(maxRecords + 1, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(maxPages));
+                    return make_tuple(vector<int>(maxRecords + 1, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(maxEntries));
 
 
                 };
