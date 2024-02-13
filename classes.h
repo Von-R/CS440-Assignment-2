@@ -1058,6 +1058,7 @@ class StorageBufferManager {
                     // cout <<ch;
                     endIndex = dataFile.tellg();
                 }
+                dataFile.clear();
                 dataFile.seekg(begIndex, ios::beg);
 
                 // cout <<"\n\nsearchID:: begIndex: " << begIndex << endl;
