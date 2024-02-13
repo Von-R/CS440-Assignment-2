@@ -634,7 +634,7 @@ class StorageBufferManager {
                 
                 pageHeader.spaceRemaining -= recordSize;
                 //offsetArray.push_back(offsetOfNextRecord);
-                if (offsetSize() == get<1>(initializationResults)) {
+                if (offsetSize() == offsetArray.size()) {
                     cout << "addRecord:: offsetArray is full. Added offset to end of last record: " << offsetOfNextRecord + recordSize << "\n";
                     offsetArray.push_back(offsetOfNextRecord + recordSize);
                 }
