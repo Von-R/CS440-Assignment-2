@@ -1049,6 +1049,7 @@ class StorageBufferManager {
                 dataFile.seekg(begIndex, ios::beg);
                
                 while (dataFile.get(ch)) {
+                    cout << ch;
                     endIndex = dataFile.tellg();
                 }
 
