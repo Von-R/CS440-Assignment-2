@@ -606,6 +606,7 @@ class StorageBufferManager {
                 std::cerr << "addRecord::Error: Not enough space in the page to add the record.\n";
                 return false;
             }
+
             
             // Calculate the offset for the new record
             int offsetOfNextRecord = findOffsetOfNextRecord(data, sentinelValue);
@@ -634,14 +635,16 @@ class StorageBufferManager {
                 pageHeader.spaceRemaining -= recordSize;
                 //offsetArray.push_back(offsetOfNextRecord);
                 if (offsetSize() == get<1>(initializationResults)) {
+                    cout << "addRecord:: offsetArray is full. Added offset to end of last record: " << offsetOfNextRecord + recordSize << "\n";
                     offsetArray.push_back(offsetOfNextRecord + recordSize);
                 }
+                // Add the offset to the offsetArray of the next sentinel. This should point to the end of the record
                 if (!addOffsetToFirstSentinel(offsetArray, offsetOfNextRecord)) {
                     std::cerr << "addRecord:: Error: Unable to add offset to offsetArray.\n";
                     return false;
                 } else {
 
-                    cout << "addRecord:: Offset to end of the " << pageHeader.recordsInPage << " record in the page: " << offsetArray.back() << "\n";
+                    //cout << "addRecord:: Offset to end of the " << pageHeader.recordsInPage << " record in the page: " << offsetArray.back() << "\n";
 
                 }
 
