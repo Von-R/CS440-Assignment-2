@@ -1,4 +1,4 @@
-// Commit 81c
+
 
 #include <string>
 #include <vector>
@@ -11,6 +11,8 @@
 #include <iomanip>
 #include <limits.h>
 using namespace std;
+
+
 
 class Record {
 public:
@@ -81,7 +83,72 @@ class StorageBufferManager {
         int static maxPagesOnDisk;
         int static maxEntries;
     
+        
+         tuple<vector<int>, unsigned long long, unsigned long long> static initializeValues() {
+                    // cout << "initializeValues begin" << endl;
 
+                    int fileCount = 0;
+                    int minBioLen = INT_MAX;
+                    int maxBioLen = 0;
+                    int minNameLen = INT_MAX;
+                    int maxNameLen = 0;
+
+                    ifstream file("Employee.csv");
+                    
+                    // Loop through records
+                    string static line;
+                    if (file.is_open()) {
+                        while (getline(file, line)) {
+                            // Split line into fields
+                            vector<string> fields;
+                            stringstream ss(line);
+                            string field;
+                            while (getline(ss, field, ',')) {
+                                fields.push_back(field);
+                            }
+                            if (fields.size() != 4) {
+                                // Throw an error
+                                cerr << "Error: Incorrect number of fields. Fields != 4" << endl;
+                            }
+
+                            fileCount++;
+
+                            if (fields[1].length() < minNameLen) {
+                                minNameLen = fields[1].length();
+                            }
+                            if (fields[1].length() > maxNameLen) {
+                                maxNameLen = fields[1].length();
+                            }
+                            if (fields[2].length() < minBioLen) {
+                                minBioLen = fields[2].length();
+                            }
+                            if (fields[2].length() > maxBioLen) {
+                                maxBioLen = fields[2].length();
+                            }
+                        }
+                    }
+
+                    // Minimize size of records: ID, name, bio, manager_id and then an 8 byte offset for each
+                    // offset could end up being only 4 bytes; test/check
+                    int minRecordSize = 3 * 8 + minNameLen + minBioLen;
+                    int maxRecords = (BLOCK_SIZE) / minRecordSize;
+
+                    // Use them to calculate number of pages needed assuming all records are max size
+                    int maxRecordSize = 3 * 8 + maxNameLen + maxBioLen;
+
+                    // how many records can fit in a page if all records are max size
+                    int minRecords = (BLOCK_SIZE) / maxRecordSize;
+                    int maxE = fileCount / minRecords + 1;
+                    cout << "initializeValues:: maxEntries: " << maxE << endl;
+                    //int minPages = (BLOCK_SIZE - static_cast<unsigned long long>(maxRecords) * sizeof(int) - sizeof(Page::PageHeader)) / maxRecordSize;
+                    // Returns tuple containing offset array of size maxRecords, filled with 0's, and the size of the array
+                    //         the total count of all records
+                    //         the max size of record, used later to calc min number of pages needed
+                    // cout << "initializeValues end" << endl;
+                    return make_tuple(vector<int>(maxRecords + 1, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(maxE));
+
+
+                };
 
         StorageBufferManager(string NewFileName) { 
             // cout << "StorageBufferManager constructor begin" << endl;
@@ -97,6 +164,8 @@ class StorageBufferManager {
             
             */
             initializationResults = initializeValues();
+            maxEntries = get<2>(initializationResults);
+            cout << "StorageBufferManager::Constructor, maxEntries: " << maxEntries << endl;
             
             // cout << "StorageBufferManager constructor end" << endl;
         };
@@ -314,71 +383,6 @@ class StorageBufferManager {
             }
         };
 
-         tuple<vector<int>, unsigned long long, unsigned long long> static initializeValues() {
-                    // cout << "initializeValues begin" << endl;
-
-                    int fileCount = 0;
-                    int minBioLen = INT_MAX;
-                    int maxBioLen = 0;
-                    int minNameLen = INT_MAX;
-                    int maxNameLen = 0;
-
-                    ifstream file("Employee.csv");
-                    
-                    // Loop through records
-                    string static line;
-                    if (file.is_open()) {
-                        while (getline(file, line)) {
-                            // Split line into fields
-                            vector<string> fields;
-                            stringstream ss(line);
-                            string field;
-                            while (getline(ss, field, ',')) {
-                                fields.push_back(field);
-                            }
-                            if (fields.size() != 4) {
-                                // Throw an error
-                                cerr << "Error: Incorrect number of fields. Fields != 4" << endl;
-                            }
-
-                            fileCount++;
-
-                            if (fields[1].length() < minNameLen) {
-                                minNameLen = fields[1].length();
-                            }
-                            if (fields[1].length() > maxNameLen) {
-                                maxNameLen = fields[1].length();
-                            }
-                            if (fields[2].length() < minBioLen) {
-                                minBioLen = fields[2].length();
-                            }
-                            if (fields[2].length() > maxBioLen) {
-                                maxBioLen = fields[2].length();
-                            }
-                        }
-                    }
-
-                    // Minimize size of records: ID, name, bio, manager_id and then an 8 byte offset for each
-                    // offset could end up being only 4 bytes; test/check
-                    int minRecordSize = 3 * 8 + minNameLen + minBioLen;
-                    int maxRecords = (BLOCK_SIZE) / minRecordSize;
-
-                    // Use them to calculate number of pages needed assuming all records are max size
-                    int maxRecordSize = 3 * 8 + maxNameLen + maxBioLen;
-
-                    // how many records can fit in a page if all records are max size
-                    int minRecords = (BLOCK_SIZE) / maxRecordSize;
-                    int maxE = fileCount / minRecords + 1;
-                    cout << "initializeValues:: maxEntries: " << maxE << endl;
-                    //int minPages = (BLOCK_SIZE - static_cast<unsigned long long>(maxRecords) * sizeof(int) - sizeof(Page::PageHeader)) / maxRecordSize;
-                    // Returns tuple containing offset array of size maxRecords, filled with 0's, and the size of the array
-                    //         the total count of all records
-                    //         the max size of record, used later to calc min number of pages needed
-                    // cout << "initializeValues end" << endl;
-                    return make_tuple(vector<int>(maxRecords + 1, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(maxE));
-
-
-                };
 
     class Page {
         public:
