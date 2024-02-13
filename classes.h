@@ -77,7 +77,7 @@ class StorageBufferManager {
         // You may declare variables based on your need 
         int numRecords; // number of records in the file
         int pagesWrittenToFile = 0; // number of pages written to file. Track so that written pages are indexed by page number.
-        tuple<vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializationResults;
+        tuple<vector<int>, unsigned long long, unsigned long long> static initializationResults;
         int static maxPagesOnDisk;
     
 
@@ -190,7 +190,7 @@ class StorageBufferManager {
             int pageDirectorySize;
 
             // Default constructor
-            PageDirectory() : nextPageDirectoryOffset(-1), entries(1000), entryCount(0), nextDirectory(nullptr) {
+            PageDirectory() : nextPageDirectoryOffset(-1), entries(maxPages), entryCount(0), nextDirectory(nullptr) {
                 pageDirectorySize = (3 * sizeof(int)) + (entries.capacity() * sizeof(PageDirectoryEntry));
             }
 
@@ -312,7 +312,7 @@ class StorageBufferManager {
             }
         };
 
-         tuple<vector<int>, unsigned long long, unsigned long long, unsigned long long> static initializeValues() {
+         tuple<vector<int>, unsigned long long, unsigned long long> static initializeValues() {
                     // cout << "initializeValues begin" << endl;
 
                     int fileCount = 0;
@@ -363,13 +363,17 @@ class StorageBufferManager {
 
                     // Use them to calculate number of pages needed assuming all records are max size
                     int maxRecordSize = 3 * 8 + maxNameLen + maxBioLen;
+
+                    // how many records can fit in a page if all records are max size
+                    int minRecords = (BLOCK_SIZE) / maxRecordSize;
+                    int maxPages = fileCount / minRecords + 1;
+                    cout << "initializeValues:: maxPages: " << maxPages << endl;
                     //int minPages = (BLOCK_SIZE - static_cast<unsigned long long>(maxRecords) * sizeof(int) - sizeof(Page::PageHeader)) / maxRecordSize;
                     // Returns tuple containing offset array of size maxRecords, filled with 0's, and the size of the array
                     //         the total count of all records
                     //         the max size of record, used later to calc min number of pages needed
                     // cout << "initializeValues end" << endl;
-                    return make_tuple(vector<int>(maxRecords + 1, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(fileCount), 
-                    static_cast<unsigned long long>(maxRecordSize));
+                    return make_tuple(vector<int>(maxRecords + 1, -1), static_cast<unsigned long long>(maxRecords) * sizeof(int), static_cast<unsigned long long>(maxPages));
 
 
                 };
@@ -946,7 +950,6 @@ class StorageBufferManager {
                 //if (page->getPageNumber() == 0) {
                 //    cout << "(" << i + beginOffset << ": " << page->data[i] << ")";
                 //} else {
-                cout << page->data[i];
                 //}
             }
             cout << "\n\nloadMemoryPage end" << endl;

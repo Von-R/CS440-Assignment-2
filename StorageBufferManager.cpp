@@ -1,7 +1,7 @@
 #include "classes.h"
 
 // Define static members
-tuple<vector<int>, unsigned long long, unsigned long long, unsigned long long> StorageBufferManager::initializationResults;
+tuple<vector<int>, unsigned long long, unsigned long long> StorageBufferManager::initializationResults;
 int StorageBufferManager::maxPagesOnDisk;
 
 int StorageBufferManager::Page::dataVectorSize;
