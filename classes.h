@@ -326,7 +326,7 @@ class StorageBufferManager {
 
                 // Then write each entry
                 cout << "PageDirectory.serialize: Writing page directory entries to file: \n";
-                for (const auto& entry : entriesCopy) {
+                for (const auto& entry : entries) {
                     if (entry.pageOffset == -1) {
                         break;
                     }
@@ -367,7 +367,7 @@ class StorageBufferManager {
                 cout << "PageDirectory.deserialize: Reading page directory entries from file: \n";
 
                 int i = 0;
-                for (auto& entry : entriesCopy) {
+                for (auto& entry : entries) {
                     file.read(reinterpret_cast<char*>(&entry.pageOffset), sizeof(entry.pageOffset));
                     file.read(reinterpret_cast<char*>(&entry.recordsInPage), sizeof(entry.recordsInPage));
                     cout << "Page " << i << "; OS: " << entry.pageOffset << ", RIP: " << entry.recordsInPage << " ||| ";
