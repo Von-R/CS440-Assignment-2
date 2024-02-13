@@ -1052,6 +1052,8 @@ class StorageBufferManager {
                     endIndex = dataFile.tellg();
                 }
 
+                cout << "searchID:: begIndex: " << begIndex << endl;
+                cout << "searchID:: endIndex: " << endIndex << endl;
                 loadMemoryPage(dataFile, currentPage, begIndex, endIndex);
                 searchMainMemory(pageList->head, searchID, matchingRecords);
                 // Move to the next page directory
