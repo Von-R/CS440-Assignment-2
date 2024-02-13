@@ -135,7 +135,7 @@ class StorageBufferManager {
             */
             initializationResults = initializeValues();
             maxEntries = get<2>(initializationResults);
-            cout << "StorageBufferManager::Constructor, maxEntries: " << maxEntries << endl;
+            // cout <<"StorageBufferManager::Constructor, maxEntries: " << maxEntries << endl;
         };
         
 
@@ -808,7 +808,7 @@ class StorageBufferManager {
                     
                     // cout <<"dumpPages::Adding page directory entry. Offset: " << pageOffset << "\n";
                     if (pageDirectory->addPageDirectoryEntry(pageOffset, currentPageRecordCount, file) == -1){
-                        cout << "dumpPages::Error: entries capacity exceeded. Dynamic calculation failed.\n";
+                        cerr << "dumpPages::Error: entries capacity exceeded. Dynamic calculation failed.\n";
                         exit(-1);
                     }
 
@@ -995,7 +995,7 @@ class StorageBufferManager {
                     
                     // Error: Break if offset for page referenced in page directory is sentinel value / uninitialized
                     if (pageDirectory->entries[entryIndex].pageOffset == -1) {
-                        cout << "searchID:: Error: Page offset is invalid. Breaking...\n";
+                        cerr << "searchID:: Error: Page offset is invalid. Breaking...\n";
                         // Diagnostic print
                         /*
                         for (int i = 0; i < pageDirectory->entries.size(); i++) {
@@ -1089,44 +1089,46 @@ class StorageBufferManager {
             int i = 0;
 
             // Print the contents of the page
+            /*
             while (i < page->data.size()) {
                 cout << page->data[i];
                 i++;
             }
+            */
             
-            cout << "searchMainMemory:: Initializing records variables...\n";
+            // cout <<"searchMainMemory:: Initializing records variables...\n";
             string recordsString = string(page->data.begin(), page->data.end());
             istringstream recordsStream(recordsString);
             string record;
             int recordCounter = 1;
 
-            cout << "searchMainMemory:: Looping through records...\n";
+            // cout <<"searchMainMemory:: Looping through records...\n";
             while (getline(recordsStream, record, '%')) {
-                cout << "Parsing record number " << recordCounter++ << "\n";
+                // cout <<"Parsing record number " << recordCounter++ << "\n";
                 if (record.empty()){ 
-                    cout << "searchMainMemory:: Empty record found. Investigate. Skipping...\n";
+                    // cout <<"searchMainMemory:: Empty record found. Investigate. Skipping...\n";
                     continue; // Skip empty records
                 }
 
-                cout << "searchMainMemory:: Initializing individual record variables...\n";
+                // cout <<"searchMainMemory:: Initializing individual record variables...\n";
                 istringstream recordStream(record);
                 vector<string> fields;
                 string field;
 
-                cout << "searchMainMemory:: Looping through fields...\n";
+                // cout <<"searchMainMemory:: Looping through fields...\n";
                 while (getline(recordStream, field, '#')) {
                     fields.push_back(field);
                 }
 
                 fields[0] = fields[0].substr(1);
-                cout << "Record ID: " << fields[0] << endl;
+                // cout <<"Record ID: " << fields[0] << endl;
 
                 //for (auto field : fields) {
                 //    cout << "Field: " << field << ". Field type: " << typeid(field).name() << endl;
                 //}
 
                 if (fields.size() == 4 && stoi(fields[0]) == searchID) {
-                    cout << "Matching record found: " << fields[0] << endl;
+                    // cout <<"Matching record found: " << fields[0] << endl;
                     Record foundRecord(fields);
                     matchingRecords.push_back(foundRecord);
                     //foundRecord.print(); // Assuming Record::print() is a method to print the record details
@@ -1139,7 +1141,7 @@ class StorageBufferManager {
             } else {
                 searchMainMemory(page->getNextPage(), searchID, matchingRecords);
             }
-            cout << "searchMainMemory end" << endl;
+            // cout <<"searchMainMemory end" << endl;
         }
 
 
@@ -1157,9 +1159,9 @@ class StorageBufferManager {
             PageDirectory * pageDirectoryHead = new PageDirectory();
             PageDirectory * currentPageDirectory = pageDirectoryHead;
 
-            cout << "createFromFile: FileHeader size: " << sizeof(*header) << endl;
-            cout << "createFromFile: PageDirectory size: " << pageDirectoryHead->getPageDirectorySize() << endl;
-            cout << "createFromFile: PageDirectory entries: " << pageDirectoryHead->entries.size() << endl;
+            // cout <<"createFromFile: FileHeader size: " << sizeof(*header) << endl;
+            // cout <<"createFromFile: PageDirectory size: " << pageDirectoryHead->getPageDirectorySize() << endl;
+            // cout <<"createFromFile: PageDirectory entries: " << pageDirectoryHead->entries.size() << endl;
 
             // initialize variables
             // Offset of record
@@ -1246,9 +1248,10 @@ class StorageBufferManager {
                         if (!pageList->dumpPages(EmployeeRelation, pagesWrittenToFile, header, currentPageDirectory)) {
                             cerr << "Error: Failure to copy main memory contents to file. Stream not open." << endl;
                             exit(-1);
-                        } else {
+                        } 
+                        /* else {
                             cout << "createFromFile: Main memory full. Dumping pages to file...\n";
-                        }
+                        } */
 
                         currentPage = pageList->head;
                     }
@@ -1261,9 +1264,9 @@ class StorageBufferManager {
                         if (!currentPage->addRecord(record)) {
                             cerr << "Size mismatch. Terminating..." << endl;
                             exit(-1);
-                        } else {
+                        } /* else {
                             cout << "Record added to page " << currentPage->getPageNumber() << ": \n" << record.toString() << "\n";
-                        }
+                        } */
                         //// cout  << "CreateFromFile: Record added to page?\n";
                     }            
                 }
@@ -1280,9 +1283,9 @@ class StorageBufferManager {
                     if (!pageList->dumpPages(EmployeeRelation, pagesWrittenToFile, header, currentPageDirectory)) {
                             cerr << "Error: Failure to copy main memory contents to file. Stream not open." << endl;
                             exit(-1);
-                        } else {
+                        } /* else {
                             cout << "createFromFile: Last of records read into main memory. Dumping records to file...\n";
-                        }
+                        }*/
                     // Reset to head node
                     currentPage = pageList->head;
                 }
@@ -1290,14 +1293,14 @@ class StorageBufferManager {
 
                 currentPageDirectory = pageDirectoryHead;
 
-                cout << "createFromFile: File written to successfully.\n";
-                cout << ":: header->totalNumberOfPages: " << header->totalNumberOfPages << endl;
-                cout << ":: pageDirectory->entryCount: " << currentPageDirectory->entryCount << endl;
-                cout << ":: pageDirectory->nextPageDirectoryOffset: " << currentPageDirectory->nextPageDirectoryOffset << endl;
-                cout << ":: pageDirectory->entries[0].pageOffset: " << currentPageDirectory->entries[0].pageOffset << endl;
-                cout << ":: pageDirectory->entries[0].recordsInPage: " << currentPageDirectory->entries[0].recordsInPage << endl;
-                cout << "/createFromFile:: End deserialized file header and page directory test prints.\n\n";
-                cout << "createFromFile: End createFromFile...\n\n\n\n";
+                // cout <<"createFromFile: File written to successfully.\n";
+                // cout <<":: header->totalNumberOfPages: " << header->totalNumberOfPages << endl;
+                // cout <<":: pageDirectory->entryCount: " << currentPageDirectory->entryCount << endl;
+                // cout <<":: pageDirectory->nextPageDirectoryOffset: " << currentPageDirectory->nextPageDirectoryOffset << endl;
+                // cout <<":: pageDirectory->entries[0].pageOffset: " << currentPageDirectory->entries[0].pageOffset << endl;
+                // cout <<":: pageDirectory->entries[0].recordsInPage: " << currentPageDirectory->entries[0].recordsInPage << endl;
+                // cout <<"/createFromFile:: End deserialized file header and page directory test prints.\n\n";
+                // cout <<"createFromFile: End createFromFile...\n\n\n\n";
 
             };
 
