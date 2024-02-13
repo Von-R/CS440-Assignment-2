@@ -1043,7 +1043,7 @@ class StorageBufferManager {
 
 
                 cout << "searchID:: searching last batch of records...\n";
-                begIndex = pageDirectory->entries[pageDirectory->entryCount].pageOffset;
+                begIndex = dataFile.tellg();
                 char ch;
                 endIndex = begIndex;
                 dataFile.seekg(begIndex, ios::beg);
