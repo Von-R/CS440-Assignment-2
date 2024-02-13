@@ -993,9 +993,10 @@ class StorageBufferManager {
 
                 // Loop through page directory entries
                 for (int entryIndex = 0; entryIndex < pageDirectory->entryCount - 1; entryIndex++) {
+
                     cout << "searchID:: Looping through page directory entries...\n\n";
                     
-                    // Break if offset for page referenced in page directory is sentinel value / uninitialized
+                    // Error: Break if offset for page referenced in page directory is sentinel value / uninitialized
                     if (pageDirectory->entries[entryIndex].pageOffset == -1) {
                         cout << "searchID:: Error: Page offset is invalid. Breaking...\n";
                         // Diagnostic print
@@ -1013,7 +1014,7 @@ class StorageBufferManager {
                     cout << "searchID:: begIndex: " << begIndex << endl;
                     cout << "searchID:: endIndex: " << endIndex << endl;
 
-                    // If last page, load then search
+                    // If last main memory page, load page from disk then search full main memory
                     if (currentPage->getNextPage() == nullptr) {
                         cout << "searchID:: Last page reached. Loading and searching...\n";
                         loadMemoryPage(dataFile, currentPage, begIndex, endIndex);
@@ -1033,7 +1034,25 @@ class StorageBufferManager {
                         exit(-1);
                     }
                 }
+
+                // Loop exits only when there's a single entry remaining in the page directory
+                // scenarios: 
+                // [0, 2) pages loaded in main memory
+                // <= 1 pages on disk that still need to be loaded
+                // Load the last page and search into correct main memory page
+
+
                 cout << "searchID:: searching last batch of records...\n";
+                begIndex = pageDirectory->entries.back().pageOffset;
+                char ch;
+                endIndex = begIndex;
+                dataFile.seekg(begIndex, ios::beg);
+               
+                while (dataFile.get(ch)) {
+                    endIndex = dataFile.tellg();
+                }
+                
+                loadMemoryPage(dataFile, currentPage, begIndex, endIndex);
                 searchMainMemory(pageList->head, searchID, matchingRecords);
                 // Move to the next page directory
                 cout << "searchID:: Moving to next page directory...\n";
